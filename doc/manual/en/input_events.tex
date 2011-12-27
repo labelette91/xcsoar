@@ -283,9 +283,11 @@ The key type can have the following possible values:
 \begin{description}
 \item[\texttt{APP1-APP6}] Hardware key on pocket pc
 \item[\texttt{F1-F12}] Standard function keys
+\item[\texttt{BOX1--BOX29}] Virtual InfoBoxe key generated when the infoboxe number 1 to 29 is selected
 \item[\texttt{LEFT, RIGHT, UP, DOWN, RETURN}] Mapped to arrow keys - joystick on
   organisers
 \item[\texttt{A-Z, 0-9}] and other possible keyboard buttons (case is ignored)
+
 \end{description}
 
 
@@ -308,6 +310,28 @@ These buttons can then be optionally mapped
 to physical buttons or to a spot on the 
 screen (probably transparent buttons over 
 the map).
+
+Virtual InfoBoxe Key : 
+BOX1--BOX29 are the Infobox function key name (like APP1) ,  generated when the infoboxe number 1 to 29 is selected
+by the mouse during less than 1 seconds.
+This is usefull for PDA without hardware key (only touch screen ) in order
+to have virtuel KEY on screen.
+
+The menu or event to be launch could be configure in  .xci file with the MODE=infobox : 
+Without configuration in .xci file , the default behaviour is used. 
+
+example: this will display the message "Infobox 1 pressed" 
+when infobox 1 is pressed : 
+
+#	--------
+# mode=infobox
+# ------------
+
+mode=infobox
+type=key
+data=BOX1
+event=StatusMessage Infobox 1 pressed
+
 
 Modifiers
 

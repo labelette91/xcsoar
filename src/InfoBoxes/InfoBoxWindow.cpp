@@ -476,13 +476,18 @@ InfoBoxWindow::on_mouse_up(PixelScalar x, PixelScalar y)
   if (click_clock.IsDefined()) {
     release_capture();
 
-    if ((unsigned)x < get_width() && (unsigned)y < get_height() &&
-        click_clock.check(1000)) {
-      force_draw_selector = true;
-      InfoBoxManager::ShowDlgInfoBox(id);
-      force_draw_selector = false;
+    //if clicked inside infoBox
+    if ((unsigned)x < get_width() && (unsigned)y < get_height() ){
+        //if clicked duration > 1000 ms , launch InfoBox Dialog setting
+        if(click_clock.check(1000)){
+           force_draw_selector = true;
+           InfoBoxManager::ShowDlgInfoBox(id);
+           force_draw_selector = false;
+        }
+        else
+           // < 1000ms generated event infoBox Function key = VK_INFOBOXE_BASE + InfoBoxId
+           InputEvents::ProcessKey(InputEvents::MODE_INFOBOX, VK_INFOBOXE_BASE+id);
     }
-
     click_clock.reset();
     return true;
   } else

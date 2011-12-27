@@ -32,4 +32,9 @@ Copyright_License {
 #include "Screen/GDI/Key.h"
 #endif
 
+//key code base for the virtual key generated when selection of infoboxe 1
+//infoboxe 2 key code = VK_INFOBOXE_BASE +1
+//infoboxe n key code = VK_INFOBOXE_BASE +n-1
+
+#define VK_INFOBOXE_BASE 201
 #endif
