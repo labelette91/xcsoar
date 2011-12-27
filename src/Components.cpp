@@ -25,7 +25,6 @@ Copyright_License {
 #include "Profile/Profile.hpp"
 #include "Interface.hpp"
 #include "Profile/ProfileKeys.hpp"
-#include "Profile/DisplayConfig.hpp"
 #include "Asset.hpp"
 #include "Simulator.hpp"
 #include "InfoBoxes/InfoBoxWindow.hpp"
@@ -46,15 +45,15 @@ Copyright_License {
 #include "UtilsSystem.hpp"
 #include "FLARM/FlarmDetails.hpp"
 #include "FLARM/FlarmNet.hpp"
-#include "SettingsMap.hpp"
+#include "MapSettings.hpp"
 #include "Logger/Logger.hpp"
 #include "Logger/NMEALogger.hpp"
 #include "Waypoint/WaypointDetailsReader.hpp"
 #include "Screen/Fonts.hpp"
 #include "DeviceBlackboard.hpp"
 #include "MapWindow/GlueMapWindow.hpp"
-#include "Markers.hpp"
-#include "ProtectedMarkers.hpp"
+#include "Markers/Markers.hpp"
+#include "Markers/ProtectedMarkers.hpp"
 #include "Device/device.hpp"
 #include "Topography/TopographyStore.hpp"
 #include "Topography/TopographyGlue.hpp"
@@ -75,7 +74,7 @@ Copyright_License {
 #include "LocalPath.hpp"
 #include "IO/FileCache.hpp"
 #include "Hardware/AltairControl.hpp"
-#include "Hardware/Display.hpp"
+#include "Hardware/DisplayGlue.hpp"
 #include "Compiler.h"
 #include "NMEA/Aircraft.hpp"
 #include "Waypoint/Waypoints.hpp"
@@ -154,44 +153,6 @@ XCSoarInterface::LoadProfile()
   return true;
 }
 
-static void
-LoadDisplayOrientation(VerboseOperationEnvironment &env)
-{
-  if (!Display::RotateSupported())
-    return;
-
-  Display::RotateInitialize();
-
-  Display::orientation orientation = Profile::GetDisplayOrientation();
-  if (orientation == Display::ORIENTATION_DEFAULT)
-    return;
-
-  if (!Display::Rotate(orientation)) {
-    LogStartUp(_T("Display rotation failed"));
-    return;
-  }
-
-  LogStartUp(_T("Display rotated"));
-
-  XCSoarInterface::main_window.Initialise();
-
-  /* force the progress dialog to update its layout */
-  env.UpdateLayout();
-}
-
-static void
-RestoreDisplayOrientation()
-{
-  if (!Display::RotateSupported())
-    return;
-
-  Display::orientation orientation = Profile::GetDisplayOrientation();
-  if (orientation == Display::ORIENTATION_DEFAULT)
-    return;
-
-  Display::RotateRestore();
-}
-
 void
 XCSoarInterface::AfterStartup()
 {
@@ -209,7 +170,7 @@ XCSoarInterface::AfterStartup()
   }
 
   OrderedTask *defaultTask = protected_task_manager->TaskCreateDefault(
-      &way_points, SettingsComputer().task.task_type_default);
+      &way_points, GetComputerSettings().task.task_type_default);
   if (defaultTask) {
     {
       ScopeSuspendAllThreads suspend;
@@ -286,7 +247,7 @@ XCSoarInterface::Startup()
 
   SetXMLDialogLook(main_window.GetLook().dialog);
 
-  SetSettingsComputer().SetDefaults();
+  SetComputerSettings().SetDefaults();
   SetUISettings().SetDefaults();
   SetUIState().Clear();
 
@@ -300,7 +261,7 @@ XCSoarInterface::Startup()
 
   InitAsset();
 
-  LoadDisplayOrientation(operation);
+  Display::LoadOrientation(operation);
 
   main_window.InitialiseConfigured();
 
@@ -341,7 +302,7 @@ XCSoarInterface::Startup()
 
   protected_task_manager =
     new ProtectedTaskManager(*task_manager,
-                             XCSoarInterface::SettingsComputer().task,
+                             XCSoarInterface::GetComputerSettings().task,
                              task_events);
 
   // Read the terrain file
@@ -352,7 +313,7 @@ XCSoarInterface::Startup()
   glide_computer = new GlideComputer(way_points, airspace_database,
                                      *protected_task_manager,
                                      task_events);
-  glide_computer->ReadSettingsComputer(SettingsComputer());
+  glide_computer->ReadComputerSettings(GetComputerSettings());
   glide_computer->SetTerrain(terrain);
   glide_computer->SetLogger(&logger);
   glide_computer->Initialise();
@@ -360,13 +321,13 @@ XCSoarInterface::Startup()
   replay = new Replay(&logger, *protected_task_manager);
 
   // Load the EGM96 geoid data
-  OpenGeoid();
+  EGM96::Load();
 
-  GlidePolar &gp = SetSettingsComputer().glide_polar_task;
+  GlidePolar &gp = SetComputerSettings().glide_polar_task;
   gp = GlidePolar(fixed_zero);
-  gp.SetMC(SettingsComputer().task.safety_mc);
-  PlaneGlue::FromProfile(SetSettingsComputer().plane);
-  PlaneGlue::Synchronize(SettingsComputer().plane, SetSettingsComputer(), gp);
+  gp.SetMC(GetComputerSettings().task.safety_mc);
+  PlaneGlue::FromProfile(SetComputerSettings().plane);
+  PlaneGlue::Synchronize(GetComputerSettings().plane, SetComputerSettings(), gp);
   task_manager->SetGlidePolar(gp);
 
   // Read the topography file(s)
@@ -380,7 +341,7 @@ XCSoarInterface::Startup()
   WaypointDetails::ReadFileFromProfile(way_points, operation);
 
   // Set the home waypoint
-  WaypointGlue::SetHome(way_points, terrain, SetSettingsComputer(),
+  WaypointGlue::SetHome(way_points, terrain, SetComputerSettings(),
                         false);
 
   // ReSynchronise the blackboards here since SetHome touches them
@@ -392,7 +353,7 @@ XCSoarInterface::Startup()
   RASP.ScanAll(Basic().location, operation);
 
   // Reads the airspace files
-  ReadAirspace(airspace_database, terrain, SettingsComputer().pressure,
+  ReadAirspace(airspace_database, terrain, GetComputerSettings().pressure,
                operation);
 
   {
@@ -401,7 +362,7 @@ XCSoarInterface::Startup()
                       device_blackboard->Calculated());
     ProtectedAirspaceWarningManager::ExclusiveLease lease(glide_computer->GetAirspaceWarnings());
     lease->Reset(aircraft_state);
-    lease->SetConfig(CommonInterface::SettingsComputer().airspace.warnings);
+    lease->SetConfig(CommonInterface::GetComputerSettings().airspace.warnings);
   }
 
   // Read the FLARM details file
@@ -429,7 +390,7 @@ XCSoarInterface::Startup()
 /*
   -- Reset polar in case devices need the data
   LogStartUp(_T("GlidePolar::UpdatePolar"));
-  GlidePolar::UpdatePolar(true, SettingsComputer());
+  GlidePolar::UpdatePolar(true, GetComputerSettings());
 
   This should be done inside devStartup if it is really required
 */
@@ -484,7 +445,7 @@ XCSoarInterface::Startup()
 
 #ifdef HAVE_TRACKING
   tracking = new TrackingGlue();
-  tracking->SetSettings(SettingsComputer().tracking);
+  tracking->SetSettings(GetComputerSettings().tracking);
 #endif
 
   globalRunningEvent.Signal();
@@ -626,7 +587,7 @@ XCSoarInterface::Shutdown(void)
   operation.Hide();
 
   // Clear the EGM96 database
-  CloseGeoid();
+  EGM96::Close();
 
   delete glide_computer;
 
@@ -644,7 +605,7 @@ XCSoarInterface::Shutdown(void)
 
   CloseLanguageFile();
 
-  RestoreDisplayOrientation();
+  Display::RestoreOrientation();
 
   StartupLogFreeRamAndStorage();
 

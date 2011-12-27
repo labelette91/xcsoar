@@ -20,6 +20,7 @@ Copyright_License {
   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 }
 */
+
 #ifndef SUN_EPHEMERIS_HPP
 #define SUN_EPHEMERIS_HPP
 
@@ -32,30 +33,27 @@ struct BrokenDateTime;
 
 /**
  * Sun ephemeris model, used largely for calculations of sunset times
+ * @see http://www.sci.fi/~benefon/azimalt.cpp
  */
-class SunEphemeris {
-  gcc_const
-  static fixed FNday(const BrokenDateTime &date_time);
+namespace SunEphemeris
+{
+  struct Result {
+    fixed day_length, morning_twilight, evening_twilight;
+    fixed time_of_noon, time_of_sunset, time_of_sunrise;
+    Angle azimuth;
+  };
 
-  gcc_const
-  static Angle GetHourAngle(Angle lat, Angle declin);
-
-  gcc_const
-  static Angle GetHourAngleTwilight(Angle lat, Angle declin);
-
-  gcc_pure
-  Angle GetEclipticLongitude(fixed d, Angle L);
-
-  gcc_pure
-  Angle GetMeanSunLongitude(fixed d);
-
- public:
-  fixed DayLength, MorningTwilight, EveningTwilight;
-  fixed TimeOfNoon, TimeOfSunSet, TimeOfSunRise;
-  Angle Azimuth;
-
-  void CalcSunTimes(const GeoPoint &location, const BrokenDateTime &date_time,
-                    fixed TimeZone);
-};
+  /**
+   * Calculates all sun-related important times
+   * depending on time of year and location
+   * @param Location Location to be used in calculation
+   * @param Basic NMEA_INFO for current date
+   * @param Calculated DERIVED_INFO (not yet used)
+   * @param TimeZone The timezone
+   * @return Sunset time
+   */
+  Result CalcSunTimes(const GeoPoint &location, const BrokenDateTime &date_time,
+                      fixed time_zone);
+}
 
 #endif

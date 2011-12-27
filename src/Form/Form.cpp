@@ -128,6 +128,7 @@ WndForm::~WndForm()
      our own on_destroy() method won't be called (during object
      destruction, this object loses its identity) */
   reset();
+  SubForm::Clear();
 }
 
 void
@@ -154,12 +155,11 @@ WndForm::GetClientAreaWindow(void)
   return client_area;
 }
 
-bool
+void
 WndForm::on_resize(UPixelScalar width, UPixelScalar height)
 {
   ContainerWindow::on_resize(width, height);
   UpdateLayout();
-  return true;
 }
 
 void

@@ -215,8 +215,8 @@ public:
 
   void ReadBlackboard(const MoreData &nmea_info,
                       const DerivedInfo &derived_info,
-                      const SETTINGS_COMPUTER &settings_computer,
-                      const SETTINGS_MAP &settings_map);
+                      const ComputerSettings &settings_computer,
+                      const MapSettings &settings_map);
 
   const MapWindowProjection &VisibleProjection() const {
     return visible_projection;
@@ -284,7 +284,7 @@ protected:
 protected:
   virtual void on_create();
   virtual void on_destroy();
-  virtual bool on_resize(UPixelScalar width, UPixelScalar height);
+  virtual void on_resize(UPixelScalar width, UPixelScalar height);
 
   virtual void on_paint(Canvas& canvas);
   virtual void on_paint_buffer(Canvas& canvas);

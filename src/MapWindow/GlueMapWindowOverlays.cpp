@@ -178,14 +178,14 @@ GlueMapWindow::DrawFlightMode(Canvas &canvas, const PixelRect &rc) const
     return;
 
   switch (flarm.alarm_level) {
-  case 0:
+  case FlarmTraffic::AlarmType::NONE:
     bmp = &look.traffic_safe_icon;
     break;
-  case 1:
+  case FlarmTraffic::AlarmType::LOW:
     bmp = &look.traffic_warning_icon;
     break;
-  case 2:
-  case 3:
+  case FlarmTraffic::AlarmType::IMPORTANT:
+  case FlarmTraffic::AlarmType::URGENT:
     bmp = &look.traffic_alarm_icon;
     break;
   };
@@ -233,7 +233,7 @@ GlueMapWindow::DrawMapScale(Canvas &canvas, const PixelRect &rc,
                                    rc.bottom - Height);
 
   buffer.clear();
-  if (SettingsMap().auto_zoom_enabled)
+  if (GetMapSettings().auto_zoom_enabled)
     buffer = _T("AUTO ");
 
   switch (follow_mode) {
@@ -258,10 +258,10 @@ GlueMapWindow::DrawMapScale(Canvas &canvas, const PixelRect &rc,
     buffer += _T(" ");
   }
 
-  if (SettingsComputer().ballast_timer_active)
+  if (GetComputerSettings().ballast_timer_active)
     buffer.AppendFormat(
         _T("BALLAST %d LITERS "),
-        (int)SettingsComputer().glide_polar_task.GetBallastLitres());
+        (int)GetComputerSettings().glide_polar_task.GetBallastLitres());
 
   if (weather != NULL && weather->GetParameter() > 0) {
     const TCHAR *label = weather->ItemLabel(weather->GetParameter());
@@ -302,7 +302,7 @@ void
 GlueMapWindow::RenderTrail(Canvas &canvas, const RasterPoint aircraft_pos)
 {
   unsigned min_time;
-  switch(SettingsMap().trail_length) {
+  switch(GetMapSettings().trail_length) {
   case TRAIL_OFF:
     return;
   case TRAIL_LONG:
@@ -317,7 +317,7 @@ GlueMapWindow::RenderTrail(Canvas &canvas, const RasterPoint aircraft_pos)
   }
 
   DrawTrail(canvas, aircraft_pos, min_time,
-            SettingsMap().trail_drift_enabled && GetDisplayMode() == DM_CIRCLING);
+            GetMapSettings().trail_drift_enabled && GetDisplayMode() == DM_CIRCLING);
 }
 
 void
@@ -339,19 +339,19 @@ GlueMapWindow::DrawThermalBand(Canvas &canvas, const PixelRect &rc) const
     ProtectedTaskManager::Lease task_manager(*task);
     renderer.DrawThermalBand(Basic(),
                              Calculated(),
-                             SettingsComputer(),
+                             GetComputerSettings(),
                              canvas,
                              tb_rect,
-                             SettingsComputer().task,
+                             GetComputerSettings().task,
                              true,
                              &task_manager->GetOrderedTaskBehaviour());
   } else {
     renderer.DrawThermalBand(Basic(),
                              Calculated(),
-                             SettingsComputer(),
+                             GetComputerSettings(),
                              canvas,
                              tb_rect,
-                             SettingsComputer().task,
+                             GetComputerSettings().task,
                              true);
   }
 }

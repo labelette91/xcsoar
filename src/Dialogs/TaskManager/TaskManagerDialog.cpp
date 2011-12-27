@@ -135,7 +135,7 @@ dlgTaskManager::OnTaskPaint(WndOwnerDrawFrame *Sender, Canvas &canvas)
   const Look &look = CommonInterface::main_window.GetLook();
   PaintTask(canvas, Sender->get_client_rect(), *active_task,
             XCSoarInterface::Basic().location,
-            XCSoarInterface::SettingsMap(),
+            XCSoarInterface::GetMapSettings(),
             look.map.task, look.map.airspace,
             terrain);
 }
@@ -183,14 +183,6 @@ dlgTaskManager::CommitTaskChanges()
 
   return (MessageBoxX(_("Task not valid. Changes will be lost.\nContinue?"),
                       _("Task Manager"), MB_YESNO | MB_ICONQUESTION) == IDYES);
-}
-
-void
-dlgTaskManager::SaveToTempTask()
-{
-  bool changed = false;
-  bool requirerestart = false;
-  wTabBar->Save(changed, requirerestart);
 }
 
 bool

@@ -21,20 +21,46 @@ Copyright_License {
 }
 */
 
-#ifndef SETTINGS_COMPUTER_BLACKBOARD_HPP
-#define SETTINGS_COMPUTER_BLACKBOARD_HPP
+#ifndef BUTTON_LABEL_HPP
+#define BUTTON_LABEL_HPP
 
-#include "SettingsComputer.hpp"
 #include "Compiler.h"
+#include "Screen/Point.hpp"
 
-class SettingsComputerBlackboard
-{
-public:
-  gcc_const
-  const SETTINGS_COMPUTER& SettingsComputer() const
-  { return settings_computer; }
-protected:
-  SETTINGS_COMPUTER settings_computer;
+#include <tchar.h>
+#include <stddef.h>
+
+class Font;
+class ContainerWindow;
+class Menu;
+
+namespace ButtonLabel {
+  struct Expanded {
+    bool visible, enabled;
+    const TCHAR *text;
+  };
+
+  void CreateButtonLabels(ContainerWindow &parent);
+  void SetFont(const Font &Font);
+  void Destroy();
+
+  gcc_pure
+  Expanded Expand(const TCHAR *text, TCHAR *buffer, size_t size);
+
+  void SetLabelText(unsigned i, const TCHAR *text, unsigned event);
+  bool IsEnabled(unsigned i);
+
+  bool ExpandMacros(const TCHAR *In, TCHAR *OutBuffer, size_t Size);
+
+  void OnResize(const PixelRect &rc);
+
+  /**
+   * Show the specified menu.
+   *
+   * @param full do a full update; if false, then only dynamic buttons
+   * are updated (to reduce flickering)
+   */
+  void Set(const Menu &menu, const Menu *overlay=NULL, bool full=true);
 };
 
 #endif

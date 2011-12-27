@@ -25,28 +25,12 @@ Copyright_License {
 #define XCSOAR_UI_SETTINGS_HPP
 
 #include "Units/Settings.hpp"
-#include "SettingsMap.hpp"
+#include "MapSettings.hpp"
 #include "InfoBoxes/InfoBoxSettings.hpp"
 #include "Gauge/VarioSettings.hpp"
 #include "PageSettings.hpp"
 #include "Dialogs/DialogSettings.hpp"
 #include "Util/TypeTraits.hpp"
-
-enum StateMessageAlign_t {
-  smAlignCenter = 0,
-  smAlignTopLeft,
-};
-
-/** Location of Flarm radar */
-enum FlarmLocation {
-  flAuto,
-  flTopLeft,
-  flTopRight,
-  flBottomLeft,
-  flBottomRight,
-  flCentreTop,
-  flCentreBottom,
-};
 
 /**
  * User interface settings.
@@ -68,12 +52,24 @@ struct UISettings {
   /** Show ThermalAssistant if circling */
   bool enable_thermal_assistant_gauge;
 
-  StateMessageAlign_t popup_message_position;
+  enum StateMessageAlign_t {
+    smAlignCenter = 0,
+    smAlignTopLeft,
+  } popup_message_position;
 
-  FlarmLocation flarm_location;
+  /** Location of Flarm radar */
+  enum FlarmLocation {
+    flAuto,
+    flTopLeft,
+    flTopRight,
+    flBottomLeft,
+    flBottomRight,
+    flCentreTop,
+    flCentreBottom,
+  } flarm_location;
 
   UnitSetting units;
-  SETTINGS_MAP map;
+  MapSettings map;
   InfoBoxSettings info_boxes;
   VarioSettings vario;
   PageSettings pages;

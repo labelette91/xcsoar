@@ -24,10 +24,29 @@ Copyright_License {
 #ifndef GEOID_H
 #define GEOID_H
 
-#include "Engine/Navigation/GeoPoint.hpp"
+#include "Math/fixed.hpp"
+struct GeoPoint;
 
-void OpenGeoid(void);
-void CloseGeoid(void);
-fixed LookupGeoidSeparation(const GeoPoint pt);
+namespace EGM96
+{
+  /**
+   * Load the EGM96 geoid resource into egm96data.
+   */
+  void Load();
+
+  /**
+   * Clear the EGM96 from the memory
+   */
+  void Close();
+
+  /**
+   * Returns the geoid separation between the EGS96
+   * and the WGS84 at the given latitude and longitude
+   * @param lat Latitude
+   * @param lon Longitude
+   * @return The geoid separation
+   */
+  fixed LookupSeparation(const GeoPoint pt);
+}
 
 #endif

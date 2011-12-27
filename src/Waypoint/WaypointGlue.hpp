@@ -29,7 +29,7 @@ Copyright_License {
 class Waypoints;
 class RasterTerrain;
 class OperationEnvironment;
-struct SETTINGS_COMPUTER;
+struct ComputerSettings;
 
 class WaypointReaderBase;
 
@@ -37,8 +37,19 @@ class WaypointReaderBase;
  * This class is used to parse different waypoint files
  */
 namespace WaypointGlue {
+  /**
+   * This functions checks if the home and teamcode waypoint
+   * indices exist and if necessary tries to find new ones in the waypoint list
+   * @param way_points Waypoint list
+   * @param terrain RasterTerrain (for placing the aircraft
+   * in the middle of the terrain if no home was found)
+   * @param settings SETTING_COMPUTER (for determining the
+   * special waypoint indices)
+   * @param reset This should be true if the waypoint file was changed,
+   * it resets all special waypoints indices
+   */
   void SetHome(Waypoints &way_points, const RasterTerrain *terrain,
-               SETTINGS_COMPUTER &settings, const bool reset);
+               ComputerSettings &settings, const bool reset);
 
   /**
    * Reads the waypoints out of the two waypoint files and appends them to the

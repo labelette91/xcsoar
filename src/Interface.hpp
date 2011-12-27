@@ -72,20 +72,20 @@ public:
   static const DerivedInfo& Calculated() { return blackboard.Calculated(); }
 
   /**
-   * Returns the InterfaceBlackboard.SettingsComputer (read-only)
-   * @return The InterfaceBlackboard.SettingsComputer
+   * Returns the InterfaceBlackboard.ComputerSettings (read-only)
+   * @return The InterfaceBlackboard.ComputerSettings
    */
   gcc_const
-  static const SETTINGS_COMPUTER& SettingsComputer()
-  { return blackboard.SettingsComputer(); }
+  static const ComputerSettings& GetComputerSettings()
+  { return blackboard.GetComputerSettings(); }
 
   /**
-   * Returns the InterfaceBlackboard.SettingsComputer (read-write)
-   * @return The InterfaceBlackboard.SettingsComputer
+   * Returns the InterfaceBlackboard.ComputerSettings (read-write)
+   * @return The InterfaceBlackboard.ComputerSettings
    */
   gcc_const
-  static SETTINGS_COMPUTER& SetSettingsComputer()
-  { return blackboard.SetSettingsComputer(); }
+  static ComputerSettings& SetComputerSettings()
+  { return blackboard.SetComputerSettings(); }
 
   gcc_const
   static const UISettings &GetUISettings() {
@@ -93,11 +93,11 @@ public:
   }
 
   /**
-   * Returns the InterfaceBlackboard.SettingsMap (read-only)
-   * @return The InterfaceBlackboard.SettingsMap
+   * Returns the InterfaceBlackboard.MapSettings (read-only)
+   * @return The InterfaceBlackboard.MapSettings
    */
   gcc_const
-  static const SETTINGS_MAP& SettingsMap() {
+  static const MapSettings& GetMapSettings() {
     return GetUISettings().map;
   }
 
@@ -117,11 +117,11 @@ public:
   }
 
   /**
-   * Returns the InterfaceBlackboard.SettingsMap (read-write)
-   * @return The InterfaceBlackboard.SettingsMap
+   * Returns the InterfaceBlackboard.MapSettings (read-write)
+   * @return The InterfaceBlackboard.MapSettings
    */
   gcc_const
-  static SETTINGS_MAP& SetSettingsMap() {
+  static MapSettings& SetMapSettings() {
     return SetUISettings().map;
   }
 
@@ -177,13 +177,13 @@ protected:
    * Determine whether vario gauge, FLARM radar and infoboxes should be drawn
    */
   static void DisplayModes();
-  static void SendSettingsComputer();
+  static void SendGetComputerSettings();
 
   static bool force_shutdown;
 
 public:
   /**
-   * Configure a new MacCready setting in #SETTINGS_COMPUTER, and
+   * Configure a new MacCready setting in #ComputerSettings, and
    * forward it to all XCSoar modules that want it.
    *
    * @param to_devices send the new settings to all devices?
@@ -191,12 +191,12 @@ public:
   static void SetMacCready(fixed mc, bool to_devices=true);
 
   /**
-   * Call this after SETTINGS_MAP has been modified with
-   * SetSettingsMap().  It sends the new values to all sub systems,
+   * Call this after MapSettings has been modified with
+   * SetMapSettings().  It sends the new values to all sub systems,
    * and optionally forces a redraw.
    * @param trigger_draw Triggers the draw event after sending if true
    */
-  static void SendSettingsMap(const bool trigger_draw = false);
+  static void SendMapSettings(const bool trigger_draw = false);
 
 public:
   // ideally these should be protected

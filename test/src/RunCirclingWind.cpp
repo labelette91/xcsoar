@@ -49,12 +49,12 @@ int main(int argc, char **argv)
     circling_computer.Turning(replay->SetCalculated(),
                               replay->Basic(), replay->LastBasic(),
                               replay->Calculated(), replay->LastCalculated(),
-                              replay->SettingsComputer());
+                              replay->GetComputerSettings());
 
-    if ((replay->LastCalculated().turn_mode == WAITCLIMB &&
-         replay->Calculated().turn_mode == CLIMB) ||
-        (replay->LastCalculated().turn_mode == WAITCRUISE &&
-         replay->Calculated().turn_mode == CRUISE))
+    if ((replay->LastCalculated().turn_mode == CirclingMode::POSSIBLE_CLIMB &&
+         replay->Calculated().turn_mode == CirclingMode::CLIMB) ||
+        (replay->LastCalculated().turn_mode == CirclingMode::POSSIBLE_CRUISE &&
+         replay->Calculated().turn_mode == CirclingMode::CRUISE))
       circling_wind.NewFlightMode(replay->Calculated(),
                                        negative(replay->Calculated().turn_rate_smoothed),
                                        0);

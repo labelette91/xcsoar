@@ -44,14 +44,6 @@ using std::min;
 using std::max;
 
 bool
-GlueMapWindow::on_setfocus()
-{
-  MapWindow::on_setfocus();
-
-  return true;
-}
-
-bool
 GlueMapWindow::on_mouse_double(PixelScalar x, PixelScalar y)
 {
   map_item_timer.Cancel();
@@ -193,7 +185,7 @@ GlueMapWindow::on_mouse_up(PixelScalar x, PixelScalar y)
       // This drag moves the aircraft (changes speed and direction)
       const Angle oldbearing = Basic().track;
       const fixed minspeed = fixed(1.1) *
-        SettingsComputer().glide_polar_task.GetVMin();
+        GetComputerSettings().glide_polar_task.GetVMin();
       const Angle newbearing = drag_start_geopoint.Bearing(G);
       if (((newbearing - oldbearing).AsDelta().AbsoluteDegrees() < fixed(30)) ||
           (Basic().ground_speed < minspeed))
@@ -343,7 +335,7 @@ GlueMapWindow::Render(Canvas &canvas, const PixelRect &rc)
 
   if (IsNearSelf()) {
     draw_sw.Mark(_T("DrawGlueMisc"));
-    if (SettingsMap().show_thermal_profile)
+    if (GetMapSettings().show_thermal_profile)
       DrawThermalBand(canvas, rc);
     DrawStallRatio(canvas, rc);
     DrawFlightMode(canvas, rc);

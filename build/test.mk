@@ -501,6 +501,7 @@ TEST_DRIVER_SOURCES = \
 	$(SRC)/FLARM/State.cpp \
 	$(SRC)/Units/Descriptor.cpp \
 	$(SRC)/Units/System.cpp \
+	$(SRC)/Replay/IGCParser.cpp \
 	$(SRC)/ClimbAverageCalculator.cpp \
 	$(SRC)/OS/Clock.cpp \
 	$(SRC)/Util/StringUtil.cpp \
@@ -649,7 +650,7 @@ DEBUG_REPLAY_SOURCES = \
 	$(SRC)/Replay/IGCParser.cpp \
 	$(SRC)/Units/Descriptor.cpp \
 	$(SRC)/Units/System.cpp \
-	$(SRC)/SettingsComputer.cpp \
+	$(SRC)/ComputerSettings.cpp \
 	$(SRC)/Tracking/TrackingSettings.cpp \
 	$(ENGINE_SRC_DIR)/Airspace/AirspaceWarningConfig.cpp \
 	$(SRC)/Airspace/AirspaceComputerSettings.cpp \
@@ -933,7 +934,7 @@ RUN_INPUT_PARSER_SOURCES = \
 	$(SRC)/Input/InputKeys.cpp \
 	$(SRC)/Input/InputConfig.cpp \
 	$(SRC)/Input/InputParser.cpp \
-	$(SRC)/MenuData.cpp \
+	$(SRC)/Menu/MenuData.cpp \
 	$(SRC)/UtilsText.cpp \
 	$(SRC)/Compatibility/string.c \
 	$(TEST_SRC_DIR)/FakeLogFile.cpp \
@@ -1058,6 +1059,7 @@ RUN_DEVICE_DRIVER_SOURCES = \
 	$(SRC)/NMEA/ExternalSettings.cpp \
 	$(SRC)/NMEA/InputLine.cpp \
 	$(SRC)/NMEA/Checksum.cpp \
+	$(SRC)/Replay/IGCParser.cpp \
 	$(SRC)/FLARM/FlarmCalculations.cpp \
 	$(SRC)/ClimbAverageCalculator.cpp \
 	$(SRC)/Compatibility/string.c \
@@ -1084,6 +1086,7 @@ RUN_DECLARE_SOURCES = \
 	$(SRC)/NMEA/InputLine.cpp \
 	$(SRC)/NMEA/Checksum.cpp \
 	$(SRC)/NMEA/ExternalSettings.cpp \
+	$(SRC)/Replay/IGCParser.cpp \
 	$(SRC)/OS/Clock.cpp \
 	$(SRC)/Thread/Thread.cpp \
 	$(SRC)/Thread/StoppableThread.cpp \
@@ -1147,6 +1150,7 @@ RUN_FLIGHT_LIST_SOURCES = \
 	$(SRC)/NMEA/InputLine.cpp \
 	$(SRC)/NMEA/Checksum.cpp \
 	$(SRC)/NMEA/ExternalSettings.cpp \
+	$(SRC)/Replay/IGCParser.cpp \
 	$(SRC)/OS/Clock.cpp \
 	$(SRC)/Thread/Thread.cpp \
 	$(SRC)/Thread/StoppableThread.cpp \
@@ -1184,6 +1188,7 @@ RUN_DOWNLOAD_FLIGHT_SOURCES = \
 	$(SRC)/NMEA/InputLine.cpp \
 	$(SRC)/NMEA/Checksum.cpp \
 	$(SRC)/NMEA/ExternalSettings.cpp \
+	$(SRC)/Replay/IGCParser.cpp \
 	$(SRC)/OS/Clock.cpp \
 	$(SRC)/Thread/Thread.cpp \
 	$(SRC)/Thread/StoppableThread.cpp \
@@ -1388,8 +1393,8 @@ RUN_MAP_WINDOW_SOURCES = \
 	$(SRC)/Renderer/WaypointIconRenderer.cpp \
 	$(SRC)/Renderer/WaypointRenderer.cpp \
 	$(SRC)/Renderer/WindArrowRenderer.cpp \
-	$(SRC)/Markers.cpp \
-	$(SRC)/ProtectedMarkers.cpp \
+	$(SRC)/Markers/Markers.cpp \
+	$(SRC)/Markers/ProtectedMarkers.cpp \
 	$(SRC)/Math/Screen.cpp \
 	$(SRC)/Terrain/RasterBuffer.cpp \
 	$(SRC)/Terrain/RasterProjection.cpp \
@@ -1419,8 +1424,8 @@ RUN_MAP_WINDOW_SOURCES = \
 	$(SRC)/Look/TrafficLook.cpp \
 	$(SRC)/Look/MarkerLook.cpp \
 	$(SRC)/ResourceLoader.cpp \
-	$(SRC)/SettingsMap.cpp \
-	$(SRC)/SettingsComputer.cpp \
+	$(SRC)/MapSettings.cpp \
+	$(SRC)/ComputerSettings.cpp \
 	$(SRC)/Tracking/TrackingSettings.cpp \
 	$(SRC)/Computer/TraceComputer.cpp \
 	$(SRC)/Task/TaskFile.cpp \
@@ -1771,10 +1776,10 @@ RUN_ANALYSIS_SOURCES = \
 	$(SRC)/Computer/GlideComputerStats.cpp \
 	$(SRC)/Computer/GlideComputerInterface.cpp \
 	$(SRC)/Computer/CuComputer.cpp \
-	$(SRC)/SettingsComputer.cpp \
+	$(SRC)/ComputerSettings.cpp \
 	$(SRC)/Tracking/TrackingSettings.cpp \
 	$(SRC)/Replay/IGCParser.cpp \
-	$(SRC)/SettingsMap.cpp \
+	$(SRC)/MapSettings.cpp \
 	$(SRC)/Blackboard/InterfaceBlackboard.cpp \
 	$(SRC)/Audio/VegaVoice.cpp \
 	$(SRC)/TeamCodeCalculation.cpp \

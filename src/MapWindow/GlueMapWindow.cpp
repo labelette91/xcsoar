@@ -50,12 +50,12 @@ GlueMapWindow::set(ContainerWindow &parent, const PixelRect &rc)
 }
 
 void
-GlueMapWindow::SetSettingsMap(const SETTINGS_MAP &new_value)
+GlueMapWindow::SetMapSettings(const MapSettings &new_value)
 {
   AssertThreadOrUndefined();
 
 #ifdef ENABLE_OPENGL
-  ReadSettingsMap(new_value);
+  ReadMapSettings(new_value);
 #else
   ScopeLock protect(next_mutex);
   next_settings_map = new_value;
@@ -63,12 +63,12 @@ GlueMapWindow::SetSettingsMap(const SETTINGS_MAP &new_value)
 }
 
 void
-GlueMapWindow::SetSettingsComputer(const SETTINGS_COMPUTER &new_value)
+GlueMapWindow::SetComputerSettings(const ComputerSettings &new_value)
 {
   AssertThreadOrUndefined();
 
 #ifdef ENABLE_OPENGL
-  ReadSettingsComputer(new_value);
+  ReadComputerSettings(new_value);
 #else
   ScopeLock protect(next_mutex);
   next_settings_computer = new_value;
@@ -86,8 +86,8 @@ GlueMapWindow::ExchangeBlackboard()
 
 #ifndef ENABLE_OPENGL
   next_mutex.Lock();
-  ReadSettingsMap(next_settings_map);
-  ReadSettingsComputer(next_settings_computer);
+  ReadMapSettings(next_settings_map);
+  ReadComputerSettings(next_settings_computer);
   next_mutex.Unlock();
 #endif
 }

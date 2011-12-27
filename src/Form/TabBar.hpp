@@ -43,11 +43,6 @@ class OneTabButton;
  * ToDo: support lazy loading
  */
 class TabBarControl : public ContainerWindow {
-public:
-  enum EventType {
-    MouseOrButton = 0,
-    NextPreviousKey
-  };
 
 protected:
   TabbedControl pager;
@@ -107,8 +102,9 @@ public:
     return pager.GetCurrentWidget();
   }
 
-  void SetCurrentPage(unsigned i,
-      EventType EventType = TabBarControl::MouseOrButton, bool ReClick = false);
+  void ClickPage(unsigned i);
+
+  void SetCurrentPage(unsigned i);
   void NextPage();
   void PreviousPage();
 
@@ -218,8 +214,8 @@ protected:
    * @param key_code
    * @return
    */
-  virtual bool on_killfocus();
-  virtual bool on_setfocus();
+  virtual void on_killfocus();
+  virtual void on_setfocus();
   virtual bool on_key_check(unsigned key_code) const;
   virtual bool on_key_down(unsigned key_code);
 

@@ -29,6 +29,7 @@ Copyright_License {
 
 #include "Geoid.hpp"
 #include "ResourceLoader.hpp"
+#include "Engine/Navigation/GeoPoint.hpp"
 
 #include <stdlib.h>
 #include <string.h>
@@ -38,11 +39,8 @@ Copyright_License {
 
 unsigned char* egm96data= NULL;
 
-/**
- * Load the EGM96 geoid resource into egm96data.
- */
 void
-OpenGeoid(void)
+EGM96::Load()
 {
   ResourceLoader::Data data = ResourceLoader::Load(_T("IDR_RASTER_EGM96S"),
                                                    _T("RASTERDATA"));
@@ -52,15 +50,13 @@ OpenGeoid(void)
     return;
   }
 
+  assert(data.second == EGM96SIZE);
   egm96data = (unsigned char *)malloc(data.second);
   memcpy(egm96data, data.first, data.second);
 }
 
-/**
- * Clear the EGM96 from the memory
- */
 void
-CloseGeoid(void)
+EGM96::Close()
 {
   if (!egm96data)
     return;
@@ -69,15 +65,8 @@ CloseGeoid(void)
   egm96data = NULL;
 }
 
-/**
- * Returns the geoid separation between the EGS96
- * and the WGS84 at the given latitude and longitude
- * @param lat Latitude
- * @param lon Longitude
- * @return The geoid separation
- */
 fixed
-LookupGeoidSeparation(const GeoPoint pt)
+EGM96::LookupSeparation(const GeoPoint pt)
 {
   if (!egm96data)
     return fixed_zero;

@@ -27,7 +27,7 @@ Copyright_License {
 #include "Math/Angle.hpp"
 #include "Math/Screen.hpp"
 #include "NMEA/Derived.hpp"
-#include "SettingsMap.hpp"
+#include "MapSettings.hpp"
 #include "Util/Macros.hpp"
 
 void
@@ -52,7 +52,7 @@ BestCruiseArrowRenderer::Draw(Canvas &canvas, const TaskLook &look,
                               const Angle screen_angle, const RasterPoint pos,
                               const DerivedInfo &calculated)
 {
-  if (calculated.turn_mode == CLIMB ||
+  if (calculated.turn_mode == CirclingMode::CLIMB ||
       !calculated.task_stats.task_valid)
     return;
 

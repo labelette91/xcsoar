@@ -33,7 +33,7 @@ Copyright_License {
 #include "UtilsText.hpp"
 #include "Audio/Sound.hpp"
 #include "LogFile.hpp"
-#include "SettingsComputer.hpp"
+#include "ComputerSettings.hpp"
 #include "Language/Language.hpp"
 #include "StatusMessage.hpp"
 #include "UISettings.hpp"
@@ -162,7 +162,7 @@ PopupMessage::Resize()
     PixelScalar midx = (rc.right + rc.left) / 2;
     PixelScalar midy = (rc.bottom + rc.top) / 2;
 
-    if (settings.popup_message_position == smAlignTopLeft){
+    if (settings.popup_message_position == UISettings::smAlignTopLeft){
       rthis.top = 0;
       rthis.left = 0;
       rthis.bottom = height;

@@ -60,7 +60,7 @@ FlarmTrafficWindow::WarningMode() const
   return warning >= 0;
 }
 
-bool
+void
 FlarmTrafficWindow::on_resize(UPixelScalar width, UPixelScalar height)
 {
   PaintWindow::on_resize(width, height);
@@ -69,8 +69,6 @@ FlarmTrafficWindow::on_resize(UPixelScalar width, UPixelScalar height)
   radius = min(height, width) / 2 - padding;
   radar_mid.x = width / 2;
   radar_mid.y = height / 2;
-
-  return true;
 }
 
 void
@@ -275,22 +273,22 @@ FlarmTrafficWindow::PaintRadarTarget(Canvas &canvas,
 
   // Set the arrow color depending on alarm level
   switch (traffic.alarm_level) {
-  case FlarmTraffic::ALARM_LOW:
+  case FlarmTraffic::AlarmType::LOW:
     text_color = &look.default_color;
     target_pen = circle_pen = &look.warning_pen;
     target_brush = &look.warning_brush;
     arrow_brush = &look.default_brush;
     circles = 1;
     break;
-  case FlarmTraffic::ALARM_IMPORTANT:
-  case FlarmTraffic::ALARM_URGENT:
+  case FlarmTraffic::AlarmType::IMPORTANT:
+  case FlarmTraffic::AlarmType::URGENT:
     text_color = &look.default_color;
     target_pen = circle_pen = &look.alarm_pen;
     target_brush = &look.alarm_brush;
     arrow_brush = &look.default_brush;
     circles = 2;
     break;
-  case FlarmTraffic::ALARM_NONE:
+  case FlarmTraffic::AlarmType::NONE:
     if (WarningMode()) {
       text_color = &look.passive_color;
       target_pen = &look.passive_pen;
@@ -469,9 +467,7 @@ FlarmTrafficWindow::PaintRadarTarget(Canvas &canvas,
   if (side_display_type == 1 &&
       (!traffic.climb_rate_avg30s_available ||
        traffic.climb_rate_avg30s < fixed(0.5) ||
-       (traffic.type != FlarmTraffic::acGlider &&
-        traffic.type != FlarmTraffic::acHangGlider &&
-        traffic.type != FlarmTraffic::acParaGlider)))
+       traffic.IsPowered()))
       return;
 
   // Select font

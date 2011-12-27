@@ -24,7 +24,7 @@ Copyright_License {
 
 #include "GlideComputerAirData.hpp"
 #include "GlideComputer.hpp"
-#include "SettingsComputer.hpp"
+#include "ComputerSettings.hpp"
 #include "Math/LowPassFilter.hpp"
 #include "Terrain/RasterTerrain.hpp"
 #include "LocalTime.hpp"
@@ -60,7 +60,7 @@ GlideComputerAirData::ResetFlight(const bool full)
 
   thermallocator.Reset();
 
-  gr_calculator.Initialize(SettingsComputer());
+  gr_calculator.Initialize(GetComputerSettings());
 
   flying_computer.Reset();
   wind_computer.Reset();
@@ -81,7 +81,7 @@ GlideComputerAirData::ProcessVertical()
   const NMEAInfo &basic = Basic();
   DerivedInfo &calculated = SetCalculated();
 
-  auto_qnh.Process(basic, calculated, SettingsComputer(), waypoints);
+  auto_qnh.Process(basic, calculated, GetComputerSettings(), waypoints);
 
   Heading();
   TurnRate();
@@ -113,7 +113,7 @@ GlideComputerAirData::ProcessVertical()
 void
 GlideComputerAirData::Wind()
 {
-  wind_computer.Compute(SettingsComputer(),
+  wind_computer.Compute(GetComputerSettings(),
                         Basic(), LastBasic(),
                         SetCalculated());
 }
@@ -121,7 +121,7 @@ GlideComputerAirData::Wind()
 void
 GlideComputerAirData::SelectWind()
 {
-  wind_computer.Select(SettingsComputer(), Basic(), SetCalculated());
+  wind_computer.Select(GetComputerSettings(), Basic(), SetCalculated());
 }
 
 void
@@ -150,7 +150,7 @@ GlideComputerAirData::NettoVario()
 {
   const MoreData &basic = Basic();
   const DerivedInfo &calculated = Calculated();
-  const SETTINGS_COMPUTER &settings_computer = SettingsComputer();
+  const ComputerSettings &settings_computer = GetComputerSettings();
   VarioInfo &vario = SetCalculated();
 
   vario.sink_rate =
@@ -450,7 +450,7 @@ GlideComputerAirData::FlightTimes()
     return false;
   }
 
-  FlightState(SettingsComputer().glide_polar_task);
+  FlightState(GetComputerSettings().glide_polar_task);
   TakeoffLanding();
 
   return true;
@@ -495,7 +495,7 @@ GlideComputerAirData::OnTakeoff()
 void
 GlideComputerAirData::OnSwitchClimbMode(bool isclimb, bool left)
 {
-  gr_calculator.Initialize(SettingsComputer());
+  gr_calculator.Initialize(GetComputerSettings());
 }
 
 void
@@ -550,13 +550,13 @@ GlideComputerAirData::Turning()
   circling_computer.Turning(SetCalculated(),
                             Basic(), LastBasic(),
                             Calculated(), LastCalculated(),
-                            SettingsComputer());
+                            GetComputerSettings());
 
-  if (LastCalculated().turn_mode == WAITCLIMB &&
-      Calculated().turn_mode == CLIMB)
+  if (LastCalculated().turn_mode == CirclingMode::POSSIBLE_CLIMB &&
+      Calculated().turn_mode == CirclingMode::CLIMB)
     OnSwitchClimbMode(true, Calculated().TurningLeft());
-  else if (LastCalculated().turn_mode == WAITCRUISE &&
-           Calculated().turn_mode == CRUISE)
+  else if (LastCalculated().turn_mode == CirclingMode::POSSIBLE_CRUISE &&
+           Calculated().turn_mode == CirclingMode::CRUISE)
     OnSwitchClimbMode(false, Calculated().TurningLeft());
 
   // Calculate circling time percentage and call thermal band calculation
@@ -654,7 +654,7 @@ GlideComputerAirData::WorkingBand()
   ThermalBandInfo &tbi = SetCalculated().thermal_band;
 
   const fixed h_safety =
-    SettingsComputer().task.route_planner.safety_height_terrain +
+    GetComputerSettings().task.route_planner.safety_height_terrain +
     Calculated().GetTerrainBaseFallback();
 
   tbi.working_band_height = Basic().TE_altitude - h_safety;
@@ -707,9 +707,9 @@ GlideComputerAirData::ProcessSun()
 
   DerivedInfo &calculated = SetCalculated();
 
-  SunEphemeris sun;
-  sun.CalcSunTimes(Basic().location, Basic().date_time_utc,
-                   fixed(GetUTCOffset()) / 3600);
-  calculated.sunset_time = fixed(sun.TimeOfSunSet);
-  calculated.sun_azimuth = sun.Azimuth;
+  SunEphemeris::Result sun = SunEphemeris::CalcSunTimes(
+      Basic().location, Basic().date_time_utc, fixed(GetUTCOffset()) / 3600);
+
+  calculated.sunset_time = fixed(sun.time_of_sunset);
+  calculated.sun_azimuth = sun.azimuth;
 }

@@ -29,7 +29,7 @@ Copyright_License {
 #include "InfoBoxes/InfoBoxLayout.hpp"
 #include "Interface.hpp"
 #include "Input/InputEvents.hpp"
-#include "ButtonLabel.hpp"
+#include "Menu/ButtonLabel.hpp"
 #include "Screen/Graphics.hpp"
 #include "Screen/Layout.hpp"
 #include "Screen/Blank.hpp"
@@ -42,7 +42,7 @@ Copyright_License {
 #include "Gauge/GaugeFLARM.hpp"
 #include "Gauge/GaugeThermalAssistant.hpp"
 #include "Gauge/GlueGaugeVario.hpp"
-#include "MenuBar.hpp"
+#include "Menu/MenuBar.hpp"
 #include "Form/Form.hpp"
 #include "Form/Widget.hpp"
 #include "UtilsSystem.hpp"
@@ -201,8 +201,8 @@ MainWindow::InitialiseConfigured()
   ReinitialiseLayout_flarm(rc, ib_layout);
 
   map = new GlueMapWindow(*look);
-  map->SetSettingsComputer(CommonInterface::SettingsComputer());
-  map->SetSettingsMap(CommonInterface::SettingsMap());
+  map->SetComputerSettings(CommonInterface::GetComputerSettings());
+  map->SetMapSettings(CommonInterface::GetMapSettings());
   map->set(*this, map_rect);
   map->set_font(Fonts::map);
 
@@ -335,54 +335,54 @@ MainWindow::ReinitialiseLayout()
 void 
 MainWindow::ReinitialiseLayout_flarm(PixelRect rc, const InfoBoxLayout::Layout ib_layout)
 {
-  FlarmLocation val = CommonInterface::GetUISettings().flarm_location;
+  UISettings::FlarmLocation val = CommonInterface::GetUISettings().flarm_location;
 
   // Automatic mode - follow info boxes
-  if (val == flAuto) {
+  if (val == UISettings::flAuto) {
     switch (InfoBoxLayout::InfoBoxGeometry) {
     case InfoBoxLayout::ibTop8:
-      val = flTopRight;
+      val = UISettings::flTopRight;
       break;
     case InfoBoxLayout::ibLeft8:
-      val = flBottomLeft;
+      val = UISettings::flBottomLeft;
       break;
     case InfoBoxLayout::ibTop12:
-      val = flTopLeft;
+      val = UISettings::flTopLeft;
       break;
     default:
-      val = flBottomRight;    // Assume bottom right unles...
+      val = UISettings::flBottomRight;    // Assume bottom right unles...
       break;
     }
   }
 
   switch (val) {
-  case flTopLeft:
+  case UISettings::flTopLeft:
     rc.right = rc.left + ib_layout.control_width * 2;
     ++rc.left;
     rc.bottom = rc.top + ib_layout.control_height * 2;
     ++rc.top;
     break;
 
-  case flTopRight:
+  case UISettings::flTopRight:
     rc.left = rc.right - ib_layout.control_width * 2 + 1;
     rc.bottom = rc.top + ib_layout.control_height * 2;
     ++rc.top;
     break;
 
-  case flBottomLeft:
+  case UISettings::flBottomLeft:
     rc.right = rc.left + ib_layout.control_width * 2;
     ++rc.left;
     rc.top = rc.bottom - ib_layout.control_height * 2 + 1;
     break;
 
-  case flCentreTop:
+  case UISettings::flCentreTop:
     rc.left = (rc.left + rc.right) / 2 - ib_layout.control_width;
     rc.right = rc.left + ib_layout.control_width * 2 - 1;
     rc.bottom = rc.top + ib_layout.control_height * 2;
     ++rc.top;
     break;
 
-  case flCentreBottom:
+  case UISettings::flCentreBottom:
     rc.left = (rc.left + rc.right) / 2 - ib_layout.control_width;
     rc.right = rc.left + ib_layout.control_width * 2 - 1;
     rc.top = rc.bottom - ib_layout.control_height * 2 + 1;
@@ -444,7 +444,7 @@ MainWindow::full_redraw()
 
 // Windows event handlers
 
-bool
+void
 MainWindow::on_resize(UPixelScalar width, UPixelScalar height)
 {
   SingleWindow::on_resize(width, height);
@@ -457,17 +457,12 @@ MainWindow::on_resize(UPixelScalar width, UPixelScalar height)
     /* the map being created already is an indicator that XCSoar is
        running already, and so we assume the menu buttons have been
        created, too */
-
-    ButtonLabel::Destroy();
-    ButtonLabel::CreateButtonLabels(*this);
-    ButtonLabel::SetFont(Fonts::map_bold);
-
     map->BringToBottom();
   }
 
-  ProgressGlue::Resize(width, height);
+  ButtonLabel::OnResize(get_client_rect());
 
-  return true;
+  ProgressGlue::Resize(width, height);
 }
 
 bool
@@ -480,9 +475,11 @@ MainWindow::on_activate()
   return true;
 }
 
-bool
+void
 MainWindow::on_setfocus()
 {
+  SingleWindow::on_setfocus();
+
   if (!has_dialog()) {
     /* the main window should never have the keyboard focus; if we
        happen to get the focus despite of that, forward it to the map
@@ -491,10 +488,7 @@ MainWindow::on_setfocus()
       map->set_focus();
     else if (widget != NULL)
       widget->SetFocus();
-    return true;
   }
-
-  return SingleWindow::on_setfocus();
 }
 
 bool
@@ -657,17 +651,17 @@ MainWindow::GetDisplayMode() const
 }
 
 void
-MainWindow::SetSettingsComputer(const SETTINGS_COMPUTER &settings_computer)
+MainWindow::SetComputerSettings(const ComputerSettings &settings_computer)
 {
   if (map != NULL)
-    map->SetSettingsComputer(settings_computer);
+    map->SetComputerSettings(settings_computer);
 }
 
 void
-MainWindow::SetSettingsMap(const SETTINGS_MAP &settings_map)
+MainWindow::SetMapSettings(const MapSettings &settings_map)
 {
   if (map != NULL)
-    map->SetSettingsMap(settings_map);
+    map->SetMapSettings(settings_map);
 }
 
 GlueMapWindow *
@@ -737,6 +731,12 @@ MainWindow::UpdateGaugeVisibility()
   vario.SetVisible(!full_screen &&
                    !CommonInterface::GetUIState().screen_blanked);
 
+  UpdateTrafficGaugeVisibility();
+}
+
+void
+MainWindow::UpdateTrafficGaugeVisibility()
+{
   const FlarmState &flarm = CommonInterface::Basic().flarm;
   bool traffic_visible =
     (force_traffic_gauge ||
@@ -748,13 +748,17 @@ MainWindow::UpdateGaugeVisibility()
     !InputEvents::IsFlavour(_T("Traffic"));
 
   if (traffic_visible && suppress_traffic_gauge) {
-    if (flarm.available && flarm.alarm_level > 0)
+    if (flarm.available &&
+        flarm.alarm_level != FlarmTraffic::AlarmType::NONE)
       suppress_traffic_gauge = false;
     else
       traffic_visible = false;
   }
 
   if (traffic_visible) {
+    if (has_dialog())
+      return;
+
     if (!traffic_gauge.IsDefined())
       traffic_gauge.Set(new GaugeFLARM(CommonInterface::GetLiveBlackboard(),
                                        GetLook().flarm_gauge));

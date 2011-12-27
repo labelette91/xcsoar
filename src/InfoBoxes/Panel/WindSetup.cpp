@@ -44,7 +44,7 @@ public:
 
   virtual void Prepare(ContainerWindow &parent, const PixelRect &rc);
   virtual void Show(const PixelRect &rc);
-  virtual void Hide();
+  virtual bool Save(bool &changed, bool &require_restart);
 };
 
 /** XXX this hack is needed because the form callbacks don't get a
@@ -74,14 +74,10 @@ void
 WindSetupPanel::Prepare(ContainerWindow &parent, const PixelRect &rc)
 {
   LoadWindow(CallBackTable, parent, _T("IDR_XML_INFOBOXWINDSETUP"));
-}
 
-void
-WindSetupPanel::Show(const PixelRect &rc)
-{
   const NMEAInfo &basic = XCSoarInterface::Basic();
-  const SETTINGS_COMPUTER &settings_computer =
-    XCSoarInterface::SettingsComputer();
+  const ComputerSettings &settings_computer =
+    XCSoarInterface::GetComputerSettings();
   const bool external_wind = basic.external_wind_available &&
     settings_computer.use_external_wind;
 
@@ -105,32 +101,41 @@ WindSetupPanel::Show(const PixelRect &rc)
     LoadFormProperty(form, _T("prpAutoWind"), auto_wind_list,
                      settings_computer.auto_wind_mode);
   }
+}
 
+void
+WindSetupPanel::Show(const PixelRect &rc)
+{
   LoadFormProperty(form, _T("prpTrailDrift"),
-                   XCSoarInterface::SettingsMap().trail_drift_enabled);
+                   XCSoarInterface::GetMapSettings().trail_drift_enabled);
 
   XMLWidget::Show(rc);
 }
 
-void
-WindSetupPanel::Hide()
+bool
+WindSetupPanel::Save(bool &_changed, bool &_require_restart)
 {
+  bool changed = false, require_restart = false;
+
   const NMEAInfo &basic = XCSoarInterface::Basic();
-  SETTINGS_COMPUTER &settings_computer =
-    XCSoarInterface::SetSettingsComputer();
+  ComputerSettings &settings_computer =
+    XCSoarInterface::SetComputerSettings();
   const bool external_wind = basic.external_wind_available &&
     settings_computer.use_external_wind;
 
   if (!external_wind) {
-    SaveFormProperty(form, _T("prpAutoWind"), szProfileAutoWind,
+    changed = SaveFormProperty(form, _T("prpAutoWind"), szProfileAutoWind,
                      settings_computer.auto_wind_mode);
   }
 
-  SaveFormProperty(form, _T("prpTrailDrift"),
-                   XCSoarInterface::SetSettingsMap().trail_drift_enabled);
-  ActionInterface::SendSettingsMap();
+  changed |= SaveFormProperty(form, _T("prpTrailDrift"),
+                              XCSoarInterface::
+                              SetMapSettings().trail_drift_enabled);
+  ActionInterface::SendMapSettings();
 
-  XMLWidget::Hide();
+  _changed |= changed;
+  _require_restart |= require_restart;
+  return true;
 }
 
 Widget *

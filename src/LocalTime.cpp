@@ -52,5 +52,5 @@ DetectCurrentTime(const NMEAInfo &Basic)
 int
 GetUTCOffset()
 {
-  return XCSoarInterface::SettingsComputer().utc_offset;
+  return XCSoarInterface::GetComputerSettings().utc_offset;
 }

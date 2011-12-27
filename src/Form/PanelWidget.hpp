@@ -21,43 +21,24 @@ Copyright_License {
 }
 */
 
-#ifndef BUTTON_LABEL_HPP
-#define BUTTON_LABEL_HPP
+#ifndef XCSOAR_PANEL_WIDGET_HPP
+#define XCSOAR_PANEL_WIDGET_HPP
 
-#include "Compiler.h"
+#include "Form/WindowWidget.hpp"
 
-#include <tchar.h>
-#include <stddef.h>
 
-class Font;
-class ContainerWindow;
-class Menu;
+/**
+ * Class to be inherited.
+ * Window widget with a panel the size of the rect passed to Prepare().
+ * Panel is automatically created by Prepare() and deleted in UnPrepare().
+ * Panel is accessed via WindowWidget's GetWindow().
+ */
+class PanelWidget : public WindowWidget {
+protected:
 
-namespace ButtonLabel {
-  struct Expanded {
-    bool visible, enabled;
-    const TCHAR *text;
-  };
-
-  void CreateButtonLabels(ContainerWindow &parent);
-  void SetFont(const Font &Font);
-  void Destroy();
-
-  gcc_pure
-  Expanded Expand(const TCHAR *text, TCHAR *buffer, size_t size);
-
-  void SetLabelText(unsigned i, const TCHAR *text, unsigned event);
-  bool IsEnabled(unsigned i);
-
-  bool ExpandMacros(const TCHAR *In, TCHAR *OutBuffer, size_t Size);
-
-  /**
-   * Show the specified menu.
-   *
-   * @param full do a full update; if false, then only dynamic buttons
-   * are updated (to reduce flickering)
-   */
-  void Set(const Menu &menu, const Menu *overlay=NULL, bool full=true);
+public:
+  virtual void Prepare(ContainerWindow &parent, const PixelRect &rc);
+  virtual void Unprepare();
 };
 
 #endif

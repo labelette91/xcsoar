@@ -44,7 +44,7 @@ DrawPolygon(Canvas &canvas, const AirspacePolygon &airspace,
   }
 
   GeoBounds bounds = airspace.GetGeoBounds();
-  GeoPoint center = bounds.center();
+  GeoPoint center = bounds.GetCenter();
 
   fixed geo_heigth = GeoPoint(center.longitude, bounds.north).Distance(
                      GeoPoint(center.longitude, bounds.south));
@@ -84,7 +84,7 @@ AirspacePreviewRenderer::Draw(Canvas &canvas, const AbstractAirspace &airspace,
   else
     canvas.Select(look.pens[airspace.GetType()]);
 
-  if (airspace.shape == AbstractAirspace::CIRCLE)
+  if (airspace.shape == AbstractAirspace::Shape::CIRCLE)
     canvas.circle(pt.x, pt.y, radius);
   else
     DrawPolygon(canvas, (const AirspacePolygon &)airspace, pt, radius);

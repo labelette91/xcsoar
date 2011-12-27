@@ -49,16 +49,16 @@ Copyright_License {
 
 #include <tchar.h>
 
-static const SETTINGS_COMPUTER &
-SettingsComputer()
+static const ComputerSettings &
+GetComputerSettings()
 {
-  return CommonInterface::SettingsComputer();
+  return CommonInterface::GetComputerSettings();
 }
 
-static const SETTINGS_MAP &
-SettingsMap()
+static const MapSettings &
+GetMapSettings()
 {
-  return CommonInterface::SettingsMap();
+  return CommonInterface::GetMapSettings();
 }
 
 static const MoreData &
@@ -110,36 +110,36 @@ TargetMapWindow::set(ContainerWindow &parent,
 void
 TargetMapWindow::RenderTerrain(Canvas &canvas)
 {
-  background.SetSunAngle(projection, SettingsMap().terrain,
+  background.SetSunAngle(projection, GetMapSettings().terrain,
                          Basic(), Calculated());
-  background.Draw(canvas, projection, SettingsMap().terrain);
+  background.Draw(canvas, projection, GetMapSettings().terrain);
 }
 
 void
 TargetMapWindow::RenderTopography(Canvas &canvas)
 {
-  if (topography_renderer != NULL && SettingsMap().topography_enabled)
+  if (topography_renderer != NULL && GetMapSettings().topography_enabled)
     topography_renderer->Draw(canvas, projection);
 }
 
 void
 TargetMapWindow::RenderTopographyLabels(Canvas &canvas)
 {
-  if (topography_renderer != NULL && SettingsMap().topography_enabled)
+  if (topography_renderer != NULL && GetMapSettings().topography_enabled)
     topography_renderer->DrawLabels(canvas, projection, label_block);
 }
 
 void
 TargetMapWindow::RenderAirspace(Canvas &canvas)
 {
-  if (SettingsMap().airspace.enable)
+  if (GetMapSettings().airspace.enable)
     airspace_renderer.Draw(canvas,
 #ifndef ENABLE_OPENGL
                            buffer_canvas, stencil_canvas,
 #endif
                            projection,
                            Basic(), Calculated(),
-                           SettingsComputer(), SettingsMap());
+                           GetComputerSettings(), GetMapSettings());
 }
 
 void
@@ -153,7 +153,7 @@ TargetMapWindow::DrawTask(Canvas &canvas)
   if (task && task->CheckTask()) {
 
     OZRenderer ozv(task_look, airspace_renderer.GetLook(),
-                              SettingsMap().airspace);
+                              GetMapSettings().airspace);
     RenderTaskPoint tpv(canvas,
                         projection,
                         task_look,
@@ -171,13 +171,13 @@ TargetMapWindow::DrawTask(Canvas &canvas)
 void
 TargetMapWindow::DrawWaypoints(Canvas &canvas)
 {
-  const SETTINGS_MAP &settings_map = SettingsMap();
+  const MapSettings &settings_map = GetMapSettings();
   WaypointRendererSettings settings = settings_map.waypoint;
   settings.display_text_type = DISPLAYNAME;
 
   way_point_renderer.render(canvas, label_block,
                             projection, settings,
-                            SettingsComputer().task,
+                            GetComputerSettings().task,
                             task, NULL);
 }
 
@@ -225,7 +225,7 @@ TargetMapWindow::on_paint_buffer(Canvas &canvas)
 
   // Finally, draw you!
   if (Basic().connected)
-    AircraftRenderer::Draw(canvas, SettingsMap(), aircraft_look,
+    AircraftRenderer::Draw(canvas, GetMapSettings(), aircraft_look,
                            Calculated().heading - projection.GetScreenAngle(),
                            aircraft_pos);
 }
@@ -307,7 +307,7 @@ TargetMapWindow::SetTarget(unsigned index)
   invalidate();
 }
 
-bool
+void
 TargetMapWindow::on_resize(UPixelScalar width, UPixelScalar height)
 {
   BufferWindow::on_resize(width, height);
@@ -322,8 +322,6 @@ TargetMapWindow::on_resize(UPixelScalar width, UPixelScalar height)
   projection.SetScreenSize(width, height);
   projection.SetScreenOrigin(width / 2, height / 2);
   projection.UpdateScreenBounds();
-
-  return true;
 }
 
 void

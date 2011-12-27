@@ -35,16 +35,49 @@ Copyright_License {
 // Atmospheric refraction degrees
 #define AIR_REFRACTION fixed(34.0/60.0)
 
-/**
- * Get the days to J2000
- * FNday only works between 1901 to 2099 - see Meeus chapter 7
- * @param y Year
- * @param m Month
- * @param d Day
- * @param h UT in decimal hours
- * @return days to J2000
- * @see http://www.sci.fi/~benefon/azimalt.cpp
- */
+namespace SunEphemeris
+{
+  /**
+   * Get the days to J2000
+   * FNday only works between 1901 to 2099 - see Meeus chapter 7
+   * @param y Year
+   * @param m Month
+   * @param d Day
+   * @param h UT in decimal hours
+   * @return days to J2000
+   */
+  gcc_const
+  fixed FNday(const BrokenDateTime &date_time);
+
+  /**
+   * Calculating the hourangle
+   * @param lat Latitude
+   * @param declin Declination
+   * @return The hourangle
+   */
+  gcc_const
+  Angle GetHourAngle(Angle lat, Angle declin);
+
+  /**
+   * Calculating the hourangle for twilight times
+   * @param lat Latitude
+   * @param declin Declination
+   * @return The hourangle for twilight times
+   */
+  gcc_const
+  Angle GetHourAngleTwilight(Angle lat, Angle declin);
+
+  /**
+   * Find the ecliptic longitude of the Sun
+   * @return The ecliptic longitude of the Sun
+   */
+  gcc_pure
+  Angle GetEclipticLongitude(fixed d, Angle l);
+
+  gcc_pure
+  Angle GetMeanSunLongitude(fixed d);
+}
+
 fixed
 SunEphemeris::FNday(const BrokenDateTime &date_time)
 {
@@ -57,13 +90,6 @@ SunEphemeris::FNday(const BrokenDateTime &date_time)
   return fixed(luku) - fixed(730531.5) + fixed(date_time.hour % 24) / 24;
 }
 
-/**
- * Calculating the hourangle
- * @param lat Latitude
- * @param declin Declination
- * @return The hourangle
- */
-// TODO TB: find explanations/links for this and following
 Angle
 SunEphemeris::GetHourAngle(Angle lat, Angle declin)
 {
@@ -79,12 +105,6 @@ SunEphemeris::GetHourAngle(Angle lat, Angle declin)
   return Angle::Radians(fo);
 }
 
-/**
- * Calculating the hourangle for twilight times
- * @param lat Latitude
- * @param declin Declination
- * @return The hourangle for twilight times
- */
 Angle
 SunEphemeris::GetHourAngleTwilight(Angle lat, Angle declin)
 {
@@ -100,10 +120,6 @@ SunEphemeris::GetHourAngleTwilight(Angle lat, Angle declin)
   return Angle::Radians(fi);
 }
 
-/**
- * Find the ecliptic longitude of the Sun
- * @return The ecliptic longitude of the Sun
- */
 Angle
 SunEphemeris::GetEclipticLongitude(fixed d, Angle L)
 {
@@ -132,11 +148,11 @@ SunEphemeris::GetMeanSunLongitude(fixed d)
  */
 static Angle
 CalculateAzimuth(const GeoPoint &Location, const BrokenTime &time,
-                 const fixed TimeZone, const Angle dec)
+                 const fixed time_zone, const Angle dec)
 {
   assert(time.Plausible());
 
-  fixed T = fixed(time.GetSecondOfDay()) / 3600 - fixed(12) + TimeZone;
+  fixed T = fixed(time.GetSecondOfDay()) / 3600 - fixed(12) + time_zone;
   Angle t = Angle::Degrees(fixed(15)) * T;
 
   return Angle::Radians(-atan2(dec.cos() * t.sin(),
@@ -144,70 +160,65 @@ CalculateAzimuth(const GeoPoint &Location, const BrokenTime &time,
                                Location.latitude.sin() * dec.cos() * t.cos()));
 }
 
-/**
- * Calculates all sun-related important times
- * depending on time of year and location
- * @param Location Location to be used in calculation
- * @param Basic NMEA_INFO for current date
- * @param Calculated DERIVED_INFO (not yet used)
- * @param TimeZone The timezone
- * @return Sunset time
- */
-void
-SunEphemeris::CalcSunTimes(const GeoPoint &Location,
+SunEphemeris::Result
+SunEphemeris::CalcSunTimes(const GeoPoint &location,
                            const BrokenDateTime &date_time,
-                           const fixed TimeZone)
+                           const fixed time_zone)
 {
+  Result result;
+
   assert(date_time.Plausible());
 
-  fixed DaysToJ2000 = FNday(date_time);
+  fixed days_to_j2000 = FNday(date_time);
 
-  Angle L = GetMeanSunLongitude(DaysToJ2000);
+  Angle l = GetMeanSunLongitude(days_to_j2000);
 
   // Use GetEclipticLongitude to find the ecliptic longitude of the Sun
-  Angle Lambda = GetEclipticLongitude(DaysToJ2000, L);
+  Angle lambda = GetEclipticLongitude(days_to_j2000, l);
 
   // Obliquity of the ecliptic
-  Angle Obliquity = Angle::Degrees(fixed(23.439) - fixed(.0000004) * DaysToJ2000);
+  Angle obliquity = Angle::Degrees(fixed(23.439) - fixed(.0000004) * days_to_j2000);
 
   // Find the RA and DEC of the Sun
-  Angle Alpha = Angle::Radians(atan2(Obliquity.cos() * Lambda.sin(), Lambda.cos()));
-  Angle Delta = Angle::Radians(asin(Obliquity.sin() * Lambda.sin()));
+  Angle alpha = Angle::Radians(atan2(obliquity.cos() * lambda.sin(), lambda.cos()));
+  Angle delta = Angle::Radians(asin(obliquity.sin() * lambda.sin()));
 
   // Find the Equation of Time in minutes
   // Correction suggested by David Smith
-  fixed LL = (L - Alpha).Radians();
-  if (L.Radians() < fixed_pi)
-    LL += fixed_two_pi;
+  fixed ll = (l - alpha).Radians();
+  if (l.Radians() < fixed_pi)
+    ll += fixed_two_pi;
 
-  fixed equation = fixed(1440) * (fixed_one - LL / fixed_two_pi);
+  fixed equation = fixed(1440) * (fixed_one - ll / fixed_two_pi);
 
-  Angle HourAngle = GetHourAngle(Location.latitude, Delta);
-  Angle HourAngleTwilight = GetHourAngleTwilight(Location.latitude, Delta);
+  Angle hour_angle = GetHourAngle(location.latitude, delta);
+  Angle hour_angle_twilight = GetHourAngleTwilight(location.latitude, delta);
 
-  Azimuth = CalculateAzimuth(Location, date_time, TimeZone, Delta);
+  result.azimuth = CalculateAzimuth(location, date_time, time_zone, delta);
 
   // length of twilight in hours
-  fixed TwilightHours = (HourAngleTwilight - HourAngle).Hours();
+  fixed twilight_hours = (hour_angle_twilight - hour_angle).Hours();
 
   // Conversion of angle to hours and minutes
-  DayLength = HourAngle.Hours() * fixed_two;
+  result.day_length = hour_angle.Hours() * fixed_two;
 
-  if (DayLength < fixed(0.0001))
+  if (result.day_length < fixed(0.0001))
     // arctic winter
-    DayLength = fixed_zero;
+    result.day_length = fixed_zero;
 
-  TimeOfSunRise = fixed(12) - HourAngle.Hours() + TimeZone
-    - Location.longitude.Degrees() / 15 + equation / 60;
+  result.time_of_sunrise = fixed(12) - hour_angle.Hours() + time_zone
+    - location.longitude.Degrees() / 15 + equation / 60;
 
-  if (TimeOfSunRise > fixed(24))
-    TimeOfSunRise -= fixed(24);
+  if (result.time_of_sunrise > fixed(24))
+    result.time_of_sunrise -= fixed(24);
 
-  TimeOfSunSet = TimeOfSunRise + DayLength;
-  TimeOfNoon = TimeOfSunRise + HourAngle.Hours();
+  result.time_of_sunset = result.time_of_sunrise + result.day_length;
+  result.time_of_noon = result.time_of_sunrise + hour_angle.Hours();
 
   // morning twilight begin
-  MorningTwilight = TimeOfSunRise - TwilightHours;
+  result.morning_twilight = result.time_of_sunrise - twilight_hours;
   // evening twilight end
-  EveningTwilight = TimeOfSunSet + TwilightHours;
+  result.evening_twilight = result.time_of_sunset + twilight_hours;
+
+  return result;
 }

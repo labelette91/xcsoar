@@ -43,7 +43,7 @@ Copyright_License {
 #include "Dialogs/Dialogs.h"
 #include "Logger/LoggerImpl.hpp"
 #include "Audio/Sound.hpp"
-#include "ButtonLabel.hpp"
+#include "Menu/ButtonLabel.hpp"
 #include "DeviceBlackboard.hpp"
 #include "Airspace/AirspaceParser.hpp"
 #include "Profile/Profile.hpp"
@@ -164,7 +164,7 @@ protected:
 };
 
 static void
-SetDefaults(SETTINGS_MAP &settings_map)
+SetDefaults(MapSettings &settings_map)
 {
   settings_map.cruise_orientation = NORTHUP;
   settings_map.circling_orientation = NORTHUP;
@@ -198,11 +198,11 @@ LoadFiles()
 }
 
 static void
-GenerateBlackboard(MapWindow &map, const SETTINGS_MAP &settings_map)
+GenerateBlackboard(MapWindow &map, const MapSettings &settings_map)
 {
   MoreData nmea_info;
   DerivedInfo derived_info;
-  SETTINGS_COMPUTER settings_computer;
+  ComputerSettings settings_computer;
 
   nmea_info.Reset();
   nmea_info.clock = fixed_one;
@@ -278,7 +278,7 @@ WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
   TestWindow::register_class(hInstance);
 #endif
 
-  SETTINGS_MAP settings_map;
+  MapSettings settings_map;
   settings_map.SetDefaults();
   SetDefaults(settings_map);
 

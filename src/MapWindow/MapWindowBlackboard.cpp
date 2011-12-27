@@ -24,14 +24,14 @@ Copyright_License {
 #include "MapWindowBlackboard.hpp"
 
 void
-MapWindowBlackboard::ReadSettingsComputer(const SETTINGS_COMPUTER
+MapWindowBlackboard::ReadComputerSettings(const ComputerSettings
 					      &settings)
 {
-  settings_computer = settings;
+  computer_settings = settings;
 }
 
 void
-MapWindowBlackboard::ReadSettingsMap(const SETTINGS_MAP
+MapWindowBlackboard::ReadMapSettings(const MapSettings
 				     &settings)
 {
   settings_map = settings;

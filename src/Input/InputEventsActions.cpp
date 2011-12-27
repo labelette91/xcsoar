@@ -49,8 +49,8 @@ doc/html/advanced/input/ALL		http://xcsoar.sourceforge.net/advanced/input/
 #include "LogFile.hpp"
 #include "Device/Parser.hpp"
 #include "UIState.hpp"
-#include "SettingsComputer.hpp"
-#include "SettingsMap.hpp"
+#include "ComputerSettings.hpp"
+#include "MapSettings.hpp"
 #include "Math/FastMath.h"
 #include "Dialogs/Dialogs.h"
 #include "Dialogs/Airspace.hpp"
@@ -63,7 +63,7 @@ doc/html/advanced/input/ALL		http://xcsoar.sourceforge.net/advanced/input/
 #include "Dialogs/Message.hpp"
 #include "Dialogs/dlgAnalysis.hpp"
 #include "Message.hpp"
-#include "ProtectedMarkers.hpp"
+#include "Markers/ProtectedMarkers.hpp"
 #include "InfoBoxes/InfoBoxLayout.hpp"
 #include "MainWindow.hpp"
 #include "Projection/MapWindowProjection.hpp"
@@ -120,7 +120,7 @@ InputEvents::eventMarkLocation(const TCHAR *misc)
   } else {
     protected_marks->MarkLocation(basic.location, basic.date_time_utc);
 
-    if (XCSoarInterface::SettingsComputer().sound_modes_enabled)
+    if (XCSoarInterface::GetComputerSettings().sound_modes_enabled)
       PlayResource(_T("IDR_WAV_CLEAR"));
   }
 
@@ -349,7 +349,7 @@ InputEvents::eventPlaySound(const TCHAR *misc)
 void
 InputEvents::eventAutoLogger(const TCHAR *misc)
 {
-  if (!XCSoarInterface::SettingsComputer().auto_logger_disabled)
+  if (!XCSoarInterface::GetComputerSettings().auto_logger_disabled)
     eventLogger(misc);
 }
 
@@ -374,8 +374,8 @@ InputEvents::eventLogger(const TCHAR *misc)
   // start stop toggle addnote
 
   const NMEAInfo &basic = CommonInterface::Basic();
-  const SETTINGS_COMPUTER &settings_computer =
-    CommonInterface::SettingsComputer();
+  const ComputerSettings &settings_computer =
+    CommonInterface::GetComputerSettings();
 
   if (_tcscmp(misc, _T("start ask")) == 0)
     logger.GUIStartLogger(basic, settings_computer,

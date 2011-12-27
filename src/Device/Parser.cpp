@@ -593,7 +593,7 @@ NMEAParser::GGA(NMEAInputLine &line, NMEAInfo &info)
     //
     if (use_geoid) {
       // JMW TODO really need to know the actual device..
-      geoid_separation = LookupGeoidSeparation(info.location);
+      geoid_separation = EGM96::LookupSeparation(info.location);
       info.gps_altitude -= geoid_separation;
     }
   }
@@ -691,10 +691,12 @@ NMEAParser::PFLAU(NMEAInputLine &line, FlarmState &flarm, fixed time)
   //   <RelativeVertical>,<RelativeDistance>(,<ID>)
   flarm.rx = line.read(0);
   flarm.tx = line.read(false);
-  flarm.gps = (FlarmState::GPSStatus)line.read(FlarmState::GPS_NONE);
+  flarm.gps = (FlarmState::GPSStatus)
+    line.read((int)FlarmState::GPSStatus::NONE);
+
   line.skip();
   flarm.alarm_level = (FlarmTraffic::AlarmType)
-    line.read(FlarmTraffic::ALARM_NONE);
+    line.read((int)FlarmTraffic::AlarmType::NONE);
 
   return true;
 }
@@ -708,7 +710,7 @@ NMEAParser::PFLAA(NMEAInputLine &line, NMEAInfo &info)
   //   <IDType>,<ID>,<Track>,<TurnRate>,<GroundSpeed>,<ClimbRate>,<AcftType>
   FlarmTraffic traffic;
   traffic.alarm_level = (FlarmTraffic::AlarmType)
-    line.read(FlarmTraffic::ALARM_NONE);
+    line.read((int)FlarmTraffic::AlarmType::NONE);
 
   fixed value;
   bool stealth = false;

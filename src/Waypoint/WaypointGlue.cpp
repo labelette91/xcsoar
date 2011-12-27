@@ -22,7 +22,7 @@ Copyright_License {
 */
 
 #include "WaypointGlue.hpp"
-#include "SettingsComputer.hpp"
+#include "ComputerSettings.hpp"
 #include "DeviceBlackboard.hpp"
 #include "Profile/Profile.hpp"
 #include "StringUtil.hpp"
@@ -85,20 +85,9 @@ WaypointGlue::IsWritable()
   return IsWritable(1) || IsWritable(2) || IsWritable(3);
 }
 
-/**
- * This functions checks if the home and teamcode waypoint
- * indices exist and if necessary tries to find new ones in the waypoint list
- * @param way_points Waypoint list
- * @param terrain RasterTerrain (for placing the aircraft
- * in the middle of the terrain if no home was found)
- * @param settings SETTING_COMPUTER (for determining the
- * special waypoint indices)
- * @param reset This should be true if the waypoint file was changed,
- * it resets all special waypoints indices
- */
 void
 WaypointGlue::SetHome(Waypoints &way_points, const RasterTerrain *terrain,
-                      SETTINGS_COMPUTER &settings,
+                      ComputerSettings &settings,
                       const bool reset)
 {
   LogStartUp(_T("SetHome"));

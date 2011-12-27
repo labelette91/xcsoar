@@ -116,16 +116,16 @@ class GlueMapWindow : public MapWindow {
 
   /**
    * The new map settings.  It is passed to
-   * MapWindowBlackboard::ReadSettingsMap() before the next frame.
+   * MapWindowBlackboard::ReadMapSettings() before the next frame.
    */
-  SETTINGS_MAP next_settings_map;
+  MapSettings next_settings_map;
 
   /**
    * The new glide computer settings.  It is passed to
-   * MapWindowBlackboard::ReadSettingsComputer() before the next
+   * MapWindowBlackboard::ReadGetComputerSettings() before the next
    * frame.
    */
-  SETTINGS_COMPUTER next_settings_computer;
+  ComputerSettings next_settings_computer;
 #endif
 
   ThermalBandRenderer thermal_band_renderer;
@@ -140,8 +140,8 @@ public:
     logger = _logger;
   }
 
-  void SetSettingsMap(const SETTINGS_MAP &new_value);
-  void SetSettingsComputer(const SETTINGS_COMPUTER &new_value);
+  void SetMapSettings(const MapSettings &new_value);
+  void SetComputerSettings(const ComputerSettings &new_value);
 
   /**
    * Update the blackboard from DeviceBlackboard and
@@ -213,8 +213,6 @@ protected:
   bool on_mouse_gesture(const TCHAR* gesture);
 
   virtual bool on_key_down(unsigned key_code);
-
-  virtual bool on_setfocus();
   virtual bool on_cancel_mode();
   virtual void on_paint(Canvas &canvas);
   virtual void on_paint_buffer(Canvas& canvas);

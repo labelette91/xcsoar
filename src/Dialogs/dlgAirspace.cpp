@@ -50,9 +50,9 @@ OnAirspacePaintListItem(Canvas &canvas, const PixelRect rc, unsigned i)
   assert(i < AIRSPACECLASSCOUNT);
 
   const AirspaceComputerSettings &computer =
-    CommonInterface::SettingsComputer().airspace;
+    CommonInterface::GetComputerSettings().airspace;
   const AirspaceRendererSettings &renderer =
-    CommonInterface::SettingsMap().airspace;
+    CommonInterface::GetMapSettings().airspace;
   const AirspaceLook &look = CommonInterface::main_window.GetLook().map.airspace;
 
   PixelScalar w0 = rc.right - rc.left - Layout::FastScale(4);
@@ -103,15 +103,15 @@ OnAirspaceListEnter(unsigned ItemIndex)
   assert(ItemIndex < AIRSPACECLASSCOUNT);
 
   AirspaceComputerSettings &computer =
-    CommonInterface::SetSettingsComputer().airspace;
+    CommonInterface::SetComputerSettings().airspace;
   AirspaceRendererSettings &renderer =
-    CommonInterface::SetSettingsMap().airspace;
+    CommonInterface::SetMapSettings().airspace;
 
   if (colormode) {
     int c = dlgAirspaceColoursShowModal();
     if (c >= 0) {
       renderer.colours[ItemIndex] = c;
-      ActionInterface::SendSettingsMap();
+      ActionInterface::SendMapSettings();
       Profile::SetAirspaceColor(ItemIndex, renderer.colours[ItemIndex]);
       changed = true;
 
@@ -127,7 +127,7 @@ OnAirspaceListEnter(unsigned ItemIndex)
       int p = dlgAirspacePatternsShowModal();
       if (p >= 0) {
         renderer.brushes[ItemIndex] = p;
-        ActionInterface::SendSettingsMap();
+        ActionInterface::SendMapSettings();
         Profile::SetAirspaceBrush(ItemIndex, renderer.brushes[ItemIndex]);
         changed = true;
       }
@@ -147,7 +147,7 @@ OnAirspaceListEnter(unsigned ItemIndex)
 
   wAirspaceList->invalidate();
 
-  ActionInterface::SendSettingsMap();
+  ActionInterface::SendMapSettings();
 }
 
 static void
@@ -192,7 +192,7 @@ dlgAirspaceShowModal(bool coloredit)
   if (changed) {
     if (!colormode && glide_computer != NULL) {
       ProtectedAirspaceWarningManager::ExclusiveLease awm(glide_computer->GetAirspaceWarnings());
-      awm->SetConfig(CommonInterface::SetSettingsComputer().airspace.warnings);
+      awm->SetConfig(CommonInterface::SetComputerSettings().airspace.warnings);
     }
 
     Profile::Save();

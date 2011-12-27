@@ -26,8 +26,8 @@ Copyright_License {
 #include "Look/Look.hpp"
 #include "MainWindow.hpp"
 #include "MapWindow/GlueMapWindow.hpp"
-#include "SettingsComputer.hpp"
-#include "SettingsMap.hpp"
+#include "ComputerSettings.hpp"
+#include "MapSettings.hpp"
 #include "Terrain/RasterTerrain.hpp"
 #include "Waypoint/WaypointDetailsReader.hpp"
 #include "Topography/TopographyStore.hpp"
@@ -143,7 +143,7 @@ SettingsLeave(const UISettings &old_ui_settings)
     TaskEvents task_events;
     GlidePolar glide_polar(lease->GetGlidePolar());
     OrderedTask *task = lease->Clone(task_events,
-                                     XCSoarInterface::SettingsComputer().task,
+                                     XCSoarInterface::GetComputerSettings().task,
                                      glide_polar);
     if (task) {
       // this must be done in thread lock because it potentially changes the
@@ -156,7 +156,7 @@ SettingsLeave(const UISettings &old_ui_settings)
   if (WaypointFileChanged || TerrainFileChanged) {
     // re-set home
     WaypointGlue::SetHome(way_points, terrain,
-                          XCSoarInterface::SetSettingsComputer(),
+                          XCSoarInterface::SetComputerSettings(),
                           WaypointFileChanged);
   }
 
@@ -176,7 +176,7 @@ SettingsLeave(const UISettings &old_ui_settings)
 
     airspace_database.clear();
     ReadAirspace(airspace_database, terrain,
-                 CommonInterface::SettingsComputer().pressure,
+                 CommonInterface::GetComputerSettings().pressure,
                  operation);
   }
 
@@ -187,8 +187,8 @@ SettingsLeave(const UISettings &old_ui_settings)
 
   Units::SetConfig(ui_settings.units);
 
-  const SETTINGS_MAP &old_settings_map = old_ui_settings.map;
-  const SETTINGS_MAP &settings_map = ui_settings.map;
+  const MapSettings &old_settings_map = old_ui_settings.map;
+  const MapSettings &settings_map = ui_settings.map;
 
   if (settings_map.snail_type != old_settings_map.snail_type ||
       settings_map.snail_scaling_enabled != old_settings_map.snail_scaling_enabled)
@@ -201,7 +201,7 @@ SettingsLeave(const UISettings &old_ui_settings)
   CommonInterface::main_window.ResumeThreads();
   // allow map and calculations threads to continue
 
-  ActionInterface::SendSettingsMap(true);
+  ActionInterface::SendMapSettings(true);
 
   operation.Hide();
   main_window.full_redraw();

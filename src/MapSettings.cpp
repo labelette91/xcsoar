@@ -21,23 +21,29 @@ Copyright_License {
 }
 */
 
-#ifndef SETTINGS_MAP_BLACKBOARD_H
-#define SETTINGS_MAP_BLACKBOARD_H
+#include "MapSettings.hpp"
 
-#include "SettingsMap.hpp"
-#include "Compiler.h"
-
-/**
- * Blackboard for clients requiring read access to map settings
- */
-class SettingsMapBlackboard
+void
+MapSettings::SetDefaults()
 {
-public:
-  gcc_const
-  const SETTINGS_MAP& SettingsMap() const
-  { return settings_map; };
-protected:
-  SETTINGS_MAP settings_map;
-};
-
-#endif
+  circle_zoom_enabled = true;
+  max_auto_zoom_distance = fixed(100000); /* 100 km */
+  topography_enabled = true;
+  terrain.SetDefaults();
+  aircraft_symbol = acSimple;
+  trail_drift_enabled = true;
+  detour_cost_markers_enabled = false;
+  display_track_bearing = dtbAuto;
+  auto_zoom_enabled = false;
+  snail_scaling_enabled = true;
+  snail_type = stStandardVario;
+  wind_arrow_style = 0;
+  waypoint.SetDefaults();
+  trail_length = TRAIL_LONG;
+  airspace.SetDefaults();
+  glider_screen_position = 20; // 20% from bottom
+  circling_orientation = TRACKUP;
+  cruise_orientation = TRACKUP;
+  show_flarm_on_map = true;
+  show_thermal_profile = true;
+}

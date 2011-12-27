@@ -44,8 +44,8 @@ trigger_redraw()
 void
 InputEvents::eventSounds(const TCHAR *misc)
 {
-  SETTINGS_COMPUTER &settings_computer =
-    CommonInterface::SetSettingsComputer();
+  ComputerSettings &settings_computer =
+    CommonInterface::SetComputerSettings();
  // bool OldEnableSoundVario = EnableSoundVario;
 
   if (_tcscmp(misc, _T("toggle")) == 0)
@@ -70,7 +70,7 @@ InputEvents::eventSounds(const TCHAR *misc)
 void
 InputEvents::eventSnailTrail(const TCHAR *misc)
 {
-  SETTINGS_MAP &settings_map = CommonInterface::SetSettingsMap();
+  MapSettings &settings_map = CommonInterface::SetMapSettings();
 
   if (_tcscmp(misc, _T("toggle")) == 0) {
     unsigned trail_length = (int)settings_map.trail_length;
@@ -104,7 +104,7 @@ InputEvents::eventSnailTrail(const TCHAR *misc)
     }
   }
 
-  ActionInterface::SendSettingsMap(true);
+  ActionInterface::SendMapSettings(true);
 }
 
 void
@@ -140,7 +140,7 @@ InputEvents::eventTerrainTopography(const TCHAR *misc)
   else if (_tcscmp(misc, _T("toggle")) == 0)
     sub_TerrainTopography(-1);
 
-  XCSoarInterface::SendSettingsMap(true);
+  XCSoarInterface::SendMapSettings(true);
 }
 
 // Adjust audio deadband of internal vario sounds
@@ -149,8 +149,8 @@ InputEvents::eventTerrainTopography(const TCHAR *misc)
 void
 InputEvents::eventAudioDeadband(const TCHAR *misc)
 {
-  SETTINGS_COMPUTER &settings_computer =
-    CommonInterface::SetSettingsComputer();
+  ComputerSettings &settings_computer =
+    CommonInterface::SetComputerSettings();
 
   if (_tcscmp(misc, _T("+"))) {
     if (settings_computer.sound_deadband >= 40)
@@ -187,7 +187,7 @@ InputEvents::eventBugs(const TCHAR *misc)
   if (protected_task_manager == NULL)
     return;
 
-  GlidePolar &polar = CommonInterface::SetSettingsComputer().glide_polar_task;
+  GlidePolar &polar = CommonInterface::SetComputerSettings().glide_polar_task;
   fixed BUGS = polar.GetBugs();
   fixed oldBugs = BUGS;
 
@@ -228,7 +228,7 @@ InputEvents::eventBallast(const TCHAR *misc)
   if (protected_task_manager == NULL)
     return;
 
-  GlidePolar &polar = CommonInterface::SetSettingsComputer().glide_polar_task;
+  GlidePolar &polar = CommonInterface::SetComputerSettings().glide_polar_task;
   fixed BALLAST = polar.GetBallast();
   fixed oldBallast = BALLAST;
 
@@ -294,12 +294,12 @@ void
 InputEvents::eventAdjustForecastTemperature(const TCHAR *misc)
 {
   if (_tcscmp(misc, _T("+")) == 0)
-    CommonInterface::SetSettingsComputer().forecast_temperature += fixed_one;
+    CommonInterface::SetComputerSettings().forecast_temperature += fixed_one;
   else if (_tcscmp(misc, _T("-")) == 0)
-    CommonInterface::SetSettingsComputer().forecast_temperature -= fixed_one;
+    CommonInterface::SetComputerSettings().forecast_temperature -= fixed_one;
   else if (_tcscmp(misc, _T("show")) == 0) {
     fixed temperature =
-      CommonInterface::SettingsComputer().forecast_temperature;
+      CommonInterface::GetComputerSettings().forecast_temperature;
     TCHAR Temp[100];
     _stprintf(Temp, _T("%f"),
               (double)Units::ToUserTemperature(temperature));
@@ -321,7 +321,7 @@ InputEvents::eventDeclutterLabels(const TCHAR *misc)
                                           _T("none")};
 
   WaypointLabelSelection_t &wls =
-    XCSoarInterface::SetSettingsMap().waypoint.label_selection;
+    XCSoarInterface::SetMapSettings().waypoint.label_selection;
   if (_tcscmp(misc, _T("toggle")) == 0)
     wls = (WaypointLabelSelection_t) ((wls + 1) %  n);
   else if (_tcscmp(misc, _T("show")) == 0 && (unsigned int) wls < n) {
@@ -335,14 +335,14 @@ InputEvents::eventDeclutterLabels(const TCHAR *misc)
         wls = (WaypointLabelSelection_t) i;
   }
 
-  ActionInterface::SendSettingsMap(true);
+  ActionInterface::SendMapSettings(true);
 }
 
 void
 InputEvents::eventAirspaceDisplayMode(const TCHAR *misc)
 {
   AirspaceRendererSettings &settings =
-    CommonInterface::SetSettingsMap().airspace;
+    CommonInterface::SetMapSettings().airspace;
 
   if (_tcscmp(misc, _T("all")) == 0)
     settings.altitude_mode = ALLON;
@@ -361,7 +361,7 @@ InputEvents::eventAirspaceDisplayMode(const TCHAR *misc)
 void
 InputEvents::eventOrientation(const TCHAR *misc)
 {
-  SETTINGS_MAP &settings_map = CommonInterface::SetSettingsMap();
+  MapSettings &settings_map = CommonInterface::SetMapSettings();
 
   if (_tcscmp(misc, _T("northup")) == 0) {
     settings_map.cruise_orientation = NORTHUP;
@@ -380,7 +380,7 @@ InputEvents::eventOrientation(const TCHAR *misc)
     settings_map.circling_orientation = TARGETUP;
   }
 
-  ActionInterface::SendSettingsMap(true);
+  ActionInterface::SendMapSettings(true);
 }
 
 /* Event_TerrainToplogy Changes
@@ -397,7 +397,7 @@ InputEvents::eventOrientation(const TCHAR *misc)
 void
 InputEvents::sub_TerrainTopography(int vswitch)
 {
-  SETTINGS_MAP &settings_map = CommonInterface::SetSettingsMap();
+  MapSettings &settings_map = CommonInterface::SetMapSettings();
 
   if (vswitch == -1) {
     // toggle through 4 possible options
@@ -455,5 +455,5 @@ InputEvents::sub_TerrainTopography(int vswitch)
   Profile::Set(szProfileDrawTerrain,
                settings_map.terrain.enable);
 
-  XCSoarInterface::SendSettingsMap(true);
+  XCSoarInterface::SendMapSettings(true);
 }

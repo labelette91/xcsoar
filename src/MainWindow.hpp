@@ -34,8 +34,8 @@ Copyright_License {
 
 #include <assert.h>
 
-struct SETTINGS_COMPUTER;
-struct SETTINGS_MAP;
+struct ComputerSettings;
+struct MapSettings;
 struct Look;
 class GlueMapWindow;
 class Widget;
@@ -229,8 +229,8 @@ public:
     return *look;
   }
 
-  void SetSettingsComputer(const SETTINGS_COMPUTER &settings_computer);
-  void SetSettingsMap(const SETTINGS_MAP &settings_map);
+  void SetComputerSettings(const ComputerSettings &settings_computer);
+  void SetMapSettings(const MapSettings &settings_map);
 
   /**
    * Returns the map even if it is not active.  May return NULL if
@@ -276,10 +276,13 @@ public:
   void ToggleSuppressFLARMRadar();
   void ToggleForceFLARMRadar();
 
+private:
+  void UpdateTrafficGaugeVisibility();
+
 protected:
-  virtual bool on_resize(UPixelScalar width, UPixelScalar height);
+  virtual void on_resize(UPixelScalar width, UPixelScalar height);
   bool on_activate();
-  bool on_setfocus();
+  void on_setfocus();
   virtual bool on_key_down(unsigned key_code);
   bool on_timer(WindowTimer &timer);
   virtual bool on_user(unsigned id);

@@ -22,8 +22,8 @@ Copyright_License {
 */
 
 #include "AirspaceRenderer.hpp"
-#include "SettingsComputer.hpp"
-#include "SettingsMap.hpp"
+#include "ComputerSettings.hpp"
+#include "MapSettings.hpp"
 #include "Projection/WindowProjection.hpp"
 #include "Screen/Canvas.hpp"
 #include "MapWindow/MapCanvas.hpp"
@@ -141,7 +141,7 @@ public:
                           const AirspaceWarningCopy& warnings,
                           const AirspaceRendererSettings &_settings)
     :MapCanvas(_canvas, _projection,
-               _projection.GetScreenBounds().scale(fixed(1.1))),
+               _projection.GetScreenBounds().Scale(fixed(1.1))),
      airspace_look(_airspace_look),
      m_warnings(warnings),
      settings(_settings),
@@ -283,7 +283,7 @@ public:
                        const AirspaceWarningCopy& warnings,
                        const AirspaceRendererSettings &_settings)
     :MapCanvas(_canvas, _projection,
-               _projection.GetScreenBounds().scale(fixed(1.1))),
+               _projection.GetScreenBounds().Scale(fixed(1.1))),
      airspace_look(_airspace_look),
      m_warnings(warnings),
      settings(_settings)
@@ -462,7 +462,7 @@ public:
                           const AirspaceLook &_airspace_look,
                           bool _black)
     :MapCanvas(_canvas, _projection,
-               _projection.GetScreenBounds().scale(fixed(1.1))),
+               _projection.GetScreenBounds().Scale(fixed(1.1))),
      airspace_look(_airspace_look),
      black(_black) {
     if (black)
@@ -514,8 +514,8 @@ AirspaceRenderer::Draw(Canvas &canvas,
                        const WindowProjection &projection,
                        const MoreData &basic,
                        const DerivedInfo &calculated,
-                       const SETTINGS_COMPUTER &settings_computer,
-                       const SETTINGS_MAP &settings_map)
+                       const ComputerSettings &settings_computer,
+                       const MapSettings &settings_map)
 {
   if (airspace_database == NULL)
     return;

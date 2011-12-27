@@ -53,7 +53,7 @@ class AirspaceIntersectionVisitorSlice: public AirspaceIntersectionVisitor
   Canvas& canvas;
   /** Chart for scaling the airspace CrossSection */
   Chart& chart;
-  /** SettingsMap for reading airspace colors, pen and brushes */
+  /** MapSettings for reading airspace colors, pen and brushes */
   const AirspaceRendererSettings &settings;
 
   const AirspaceLook &airspace_look;
@@ -277,7 +277,7 @@ CrossSectionWindow::PaintAirspaces(Canvas &canvas, Chart &chart)
                                                             Calculated()));
 
   // Call visitor with intersecting airspaces
-  airspace_database->visit_intersecting(start, vec, ivisitor);
+  airspace_database->VisitIntersecting(start, vec.EndPoint(start), ivisitor);
 }
 
 void

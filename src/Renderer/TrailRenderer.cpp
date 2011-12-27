@@ -26,7 +26,7 @@ Copyright_License {
 #include "Screen/Canvas.hpp"
 #include "NMEA/Info.hpp"
 #include "NMEA/Derived.hpp"
-#include "SettingsMap.hpp"
+#include "MapSettings.hpp"
 #include "Computer/TraceComputer.hpp"
 #include "Projection/WindowProjection.hpp"
 #include "Engine/Math/Earth.hpp"
@@ -82,7 +82,7 @@ TrailRenderer::Draw(Canvas &canvas, const TraceComputer &trace_computer,
                     const WindowProjection &projection, unsigned min_time,
                     bool enable_traildrift, const RasterPoint pos,
                     const NMEAInfo &basic, const DerivedInfo &calculated,
-                    const SETTINGS_MAP &settings)
+                    const MapSettings &settings)
 {
   if (settings.trail_length == TRAIL_OFF)
     return;
@@ -124,7 +124,7 @@ TrailRenderer::Draw(Canvas &canvas, const TraceComputer &trace_computer,
   bool scaled_trail = settings.snail_scaling_enabled &&
                       projection.GetMapScale() <= fixed_int_constant(6000);
 
-  const GeoBounds bounds = projection.GetScreenBounds().scale(fixed_four);
+  const GeoBounds bounds = projection.GetScreenBounds().Scale(fixed_four);
 
   RasterPoint last_point;
   bool last_valid = false;
@@ -133,7 +133,7 @@ TrailRenderer::Draw(Canvas &canvas, const TraceComputer &trace_computer,
       ? it->get_location().Parametric(traildrift,
                                       it->CalculateDrift(basic.time))
       : it->get_location();
-    if (!bounds.inside(gp)) {
+    if (!bounds.IsInside(gp)) {
       /* the point is outside of the MapWindow; don't paint it */
       last_valid = false;
       continue;

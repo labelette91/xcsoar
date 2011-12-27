@@ -291,14 +291,14 @@ FlarmTrafficControl2::PaintTrafficInfo(Canvas &canvas) const
 
   // Set the text color and background
   switch (traffic.alarm_level) {
-  case FlarmTraffic::ALARM_LOW:
+  case FlarmTraffic::AlarmType::LOW:
     canvas.SetTextColor(look.warning_color);
     break;
-  case FlarmTraffic::ALARM_IMPORTANT:
-  case FlarmTraffic::ALARM_URGENT:
+  case FlarmTraffic::AlarmType::IMPORTANT:
+  case FlarmTraffic::AlarmType::URGENT:
     canvas.SetTextColor(look.alarm_color);
     break;
-  case FlarmTraffic::ALARM_NONE:
+  case FlarmTraffic::AlarmType::NONE:
     canvas.SetTextColor(look.default_color);
     break;
   }
@@ -495,7 +495,7 @@ TrafficWidget::Update()
 
   view->Update(basic.track,
                basic.flarm,
-               XCSoarInterface::SettingsComputer());
+               XCSoarInterface::GetComputerSettings());
 
   view->UpdateTaskDirection(calculated.task_stats.task_valid &&
                             calculated.task_stats.current_leg.solution_remaining.IsOk(),

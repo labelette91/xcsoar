@@ -139,8 +139,8 @@ TestFLARM()
                                       nmea_info));
   ok1(nmea_info.flarm.rx == 3);
   ok1(nmea_info.flarm.tx);
-  ok1(nmea_info.flarm.gps == 1);
-  ok1(nmea_info.flarm.alarm_level == 0);
+  ok1(nmea_info.flarm.gps == FlarmState::GPSStatus::GPS_2D);
+  ok1(nmea_info.flarm.alarm_level == FlarmTraffic::AlarmType::NONE);
   ok1(nmea_info.flarm.GetActiveTrafficCount() == 0);
   ok1(!nmea_info.flarm.new_traffic);
 
@@ -155,7 +155,7 @@ TestFLARM()
   FlarmTraffic *traffic = nmea_info.flarm.FindTraffic(id);
   if (ok1(traffic != NULL)) {
     ok1(traffic->valid);
-    ok1(traffic->alarm_level == 0);
+    ok1(traffic->alarm_level == FlarmTraffic::AlarmType::NONE);
     ok1(equals(traffic->relative_north, 100));
     ok1(equals(traffic->relative_east, -150));
     ok1(equals(traffic->relative_altitude, 10));
@@ -167,7 +167,7 @@ TestFLARM()
     ok1(traffic->speed_received);
     ok1(equals(traffic->climb_rate, 1.4));
     ok1(traffic->climb_rate_received);
-    ok1(traffic->type == FlarmTraffic::acTowPlane);
+    ok1(traffic->type == FlarmTraffic::AircraftType::TOW_PLANE);
     ok1(!traffic->stealth);
   } else {
     skip(16, 0, "traffic == NULL");
@@ -181,7 +181,7 @@ TestFLARM()
   traffic = nmea_info.flarm.FindTraffic(id);
   if (ok1(traffic != NULL)) {
     ok1(traffic->valid);
-    ok1(traffic->alarm_level == 2);
+    ok1(traffic->alarm_level == FlarmTraffic::AlarmType::IMPORTANT);
     ok1(equals(traffic->relative_north, 20));
     ok1(equals(traffic->relative_east, 10));
     ok1(equals(traffic->relative_altitude, 24));
@@ -189,7 +189,7 @@ TestFLARM()
     ok1(!traffic->turn_rate_received);
     ok1(!traffic->speed_received);
     ok1(!traffic->climb_rate_received);
-    ok1(traffic->type == FlarmTraffic::acGlider);
+    ok1(traffic->type == FlarmTraffic::AircraftType::GLIDER);
     ok1(traffic->stealth);
   } else {
     skip(12, 0, "traffic == NULL");
@@ -217,7 +217,7 @@ TestBorgeltB50()
   ok1(equals(nmea_info.settings.mac_cready, 0.5144444444444444));
   ok1(nmea_info.settings.bugs_available);
   ok1(equals(nmea_info.settings.bugs, 0.9));
-  ok1(nmea_info.switch_state.flight_mode == SwitchInfo::MODE_CIRCLING);
+  ok1(nmea_info.switch_state.flight_mode == SwitchInfo::FlightMode::CIRCLING);
   ok1(nmea_info.temperature_available);
   ok1(equals(nmea_info.temperature, 245.15));
 
@@ -766,14 +766,14 @@ TestZander()
   nmea_info.clock = fixed_one;
   ok1(device->ParseNMEA("$PZAN5,SF,MUEHL,123.4,KM,T,234*31", nmea_info));
   ok1(nmea_info.switch_state_available);
-  ok1(nmea_info.switch_state.flight_mode == SwitchInfo::MODE_CRUISE);
+  ok1(nmea_info.switch_state.flight_mode == SwitchInfo::FlightMode::CRUISE);
   ok1(nmea_info.switch_state.speed_command);
 
   nmea_info.Reset();
   nmea_info.clock = fixed_one;
   ok1(device->ParseNMEA("$PZAN5,VA,MUEHL,123.4,KM,T,234*33", nmea_info));
   ok1(nmea_info.switch_state_available);
-  ok1(nmea_info.switch_state.flight_mode == SwitchInfo::MODE_CIRCLING);
+  ok1(nmea_info.switch_state.flight_mode == SwitchInfo::FlightMode::CIRCLING);
   ok1(!nmea_info.switch_state.speed_command);
 
   delete device;

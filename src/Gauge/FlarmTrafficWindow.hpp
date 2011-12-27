@@ -26,7 +26,7 @@
 
 #include "Screen/PaintWindow.hpp"
 #include "FLARM/State.hpp"
-#include "SettingsComputer.hpp"
+#include "ComputerSettings.hpp"
 #include "Math/FastRotation.hpp"
 #include "FlarmTrafficLook.hpp"
 
@@ -121,7 +121,7 @@ protected:
   void PaintNorth(Canvas &canvas) const;
 
 protected:
-  virtual bool on_resize(UPixelScalar width, UPixelScalar height);
+  virtual void on_resize(UPixelScalar width, UPixelScalar height);
   virtual void on_paint(Canvas &canvas);
 };
 

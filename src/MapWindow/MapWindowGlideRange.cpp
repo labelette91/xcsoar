@@ -201,7 +201,7 @@ public:
 
   TriangleCompound(const MapWindowProjection& _proj)
     :proj(_proj),
-     clip(_proj.GetScreenBounds().scale(fixed(1.1)))
+     clip(_proj.GetScreenBounds().Scale(fixed(1.1)))
   {
   }
 
@@ -231,7 +231,7 @@ public:
       return;
 
     // Perform clipping on the GeoPointVector (Result: clipped)
-    unsigned size = clip.clip_polygon(clipped, g.raw() + start, gsize - start);
+    unsigned size = clip.ClipPolygon(clipped, g.raw() + start, gsize - start);
     // With less than three points we can't draw a polygon
     if (size < 3)
       return;
@@ -262,7 +262,7 @@ MapWindow::DrawTerrainAbove(Canvas &canvas)
   // .. feature inaccessible
   if (!Basic().location_available
       || !Calculated().flight.flying
-      || SettingsComputer().final_glide_terrain == SETTINGS_COMPUTER::FGT_OFF
+      || GetComputerSettings().final_glide_terrain == ComputerSettings::FGT_OFF
       || route_planner == NULL)
     return;
 
@@ -281,7 +281,7 @@ MapWindow::DrawTerrainAbove(Canvas &canvas)
   // Don't draw shade if
   // .. shade feature disabled
   // .. pan mode activated
-  if (SettingsComputer().final_glide_terrain == SETTINGS_COMPUTER::FGT_SHADE &&
+  if (GetComputerSettings().final_glide_terrain == ComputerSettings::FGT_SHADE &&
       IsNearSelf()) {
 
 #ifdef ENABLE_OPENGL

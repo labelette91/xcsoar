@@ -33,7 +33,7 @@ Copyright_License {
 #include "UtilsText.hpp"
 #include "OS/PathName.hpp"
 #include "Math/SunEphemeris.hpp"
-#include "SettingsComputer.hpp"
+#include "ComputerSettings.hpp"
 #include "Screen/Bitmap.hpp"
 #include "Screen/Layout.hpp"
 #include "Screen/Key.h"
@@ -45,13 +45,11 @@ Copyright_License {
 #include "Task/TaskManager.hpp"
 #include "Task/MapTaskManager.hpp"
 #include "Task/Tasks/TaskSolvers/TaskSolution.hpp"
-#include "Task/Tasks/BaseTask/UnorderedTaskPoint.hpp"
 #include "Task/ProtectedTaskManager.hpp"
 #include "Waypoint/WaypointGlue.hpp"
 #include "Compiler.h"
 #include "Compatibility/path.h"
 #include "Input/InputEvents.hpp"
-#include "NMEA/Aircraft.hpp"
 #include "Units/UnitsFormatter.hpp"
 #include "Units/Units.hpp"
 #include "Units/AngleFormatter.hpp"
@@ -63,20 +61,15 @@ Copyright_License {
 
 static int page = 0;
 static WndForm *wf = NULL;
-static WndProperty *wDetails = NULL;
+static EditWindow *wDetails = NULL;
 static WndFrame *wInfo = NULL;
 static WndFrame *wCommand = NULL;
-static WndOwnerDrawFrame *wImage = NULL;
-static bool hasimage1 = false;
-static bool hasimage2 = false;
-static const Waypoint *selected_waypoint = NULL;
-
-static Bitmap jpgimage1, jpgimage2;
+static const Waypoint *waypoint = NULL;
 
 static void
 NextPage(int Step)
 {
-  assert(selected_waypoint);
+  assert(waypoint);
   bool page_ok = false;
   page += Step;
 
@@ -92,7 +85,7 @@ NextPage(int Step)
       break;
 
     case 1:
-      if (selected_waypoint->details.empty()) 
+      if (waypoint->details.empty())
         page += Step;
       else
         page_ok = true;
@@ -101,22 +94,6 @@ NextPage(int Step)
 
     case 2:
       page_ok = true;
-      break;
-
-    case 3:
-      if (!hasimage1)
-        page += Step;
-      else
-        page_ok = true;
-
-      break;
-
-    case 4:
-      if (!hasimage2)
-        page += Step;
-      else
-        page_ok = true;
-
       break;
 
     default:
@@ -130,7 +107,6 @@ NextPage(int Step)
   wInfo->set_visible(page == 0);
   wDetails->set_visible(page == 1);
   wCommand->set_visible(page == 2);
-  wImage->set_visible(page >= 3);
 }
 
 static void
@@ -182,9 +158,9 @@ OnGotoClicked(gcc_unused WndButton &button)
   if (protected_task_manager == NULL)
     return;
 
-  assert(selected_waypoint != NULL);
+  assert(waypoint != NULL);
 
-  protected_task_manager->DoGoto(*selected_waypoint);
+  protected_task_manager->DoGoto(*waypoint);
   wf->SetModalResult(mrOK);
 
   CommonInterface::main_window.full_redraw();
@@ -196,7 +172,7 @@ OnReplaceClicked(gcc_unused WndButton &button)
   if (protected_task_manager == NULL)
     return;
 
-  switch (MapTaskManager::replace_in_task(*selected_waypoint)) {
+  switch (MapTaskManager::ReplaceInTask(*waypoint)) {
   case MapTaskManager::SUCCESS:
     protected_task_manager->TaskSaveDefault();
     wf->SetModalResult(mrOK);
@@ -223,12 +199,12 @@ OnReplaceClicked(gcc_unused WndButton &button)
 static void 
 OnNewHomeClicked(gcc_unused WndButton &button)
 {
-  assert(selected_waypoint != NULL);
+  assert(waypoint != NULL);
 
-  SETTINGS_COMPUTER &settings_computer =
-    CommonInterface::SetSettingsComputer();
+  ComputerSettings &settings_computer =
+    CommonInterface::SetComputerSettings();
 
-  settings_computer.SetHome(*selected_waypoint);
+  settings_computer.SetHome(*waypoint);
 
   {
     ScopeSuspendAllThreads suspend;
@@ -246,7 +222,7 @@ OnInsertInTaskClicked(gcc_unused WndButton &button)
   if (protected_task_manager == NULL)
     return;
 
-  switch (MapTaskManager::insert_in_task(*selected_waypoint)) {
+  switch (MapTaskManager::InsertInTask(*waypoint)) {
   case MapTaskManager::SUCCESS:
     protected_task_manager->TaskSaveDefault();
     wf->SetModalResult(mrOK);
@@ -280,7 +256,7 @@ OnAppendInTaskClicked(gcc_unused WndButton &button)
   if (protected_task_manager == NULL)
     return;
 
-  switch (MapTaskManager::append_to_task(*selected_waypoint)) {
+  switch (MapTaskManager::AppendToTask(*waypoint)) {
   case MapTaskManager::SUCCESS:
     protected_task_manager->TaskSaveDefault();
     wf->SetModalResult(mrOK);
@@ -318,7 +294,7 @@ goto_and_clear_task(const Waypoint &wp)
   protected_task_manager->DoGoto(wp);
   TaskEvents task_events;
   const OrderedTask blank(task_events,
-                          XCSoarInterface::SettingsComputer(),
+                          XCSoarInterface::GetComputerSettings(),
                           XCSoarInterface::Calculated().glide_polar_task);
   protected_task_manager->task_commit(blank);
 
@@ -347,7 +323,7 @@ OnGotoAndClearTaskClicked(gcc_unused WndButton &button)
                         _("Goto and clear task"), MB_YESNO | MB_ICONQUESTION) != IDYES)
     return;
 
-  switch (goto_and_clear_task(*selected_waypoint)) {
+  switch (goto_and_clear_task(*waypoint)) {
   case SUCCESS:
     protected_task_manager->TaskSaveDefault();
     wf->SetModalResult(mrOK);
@@ -368,7 +344,7 @@ OnRemoveFromTaskClicked(gcc_unused WndButton &button)
   if (protected_task_manager == NULL)
     return;
 
-  switch (MapTaskManager::remove_from_task(*selected_waypoint)) {
+  switch (MapTaskManager::RemoveFromTask(*waypoint)) {
   case MapTaskManager::SUCCESS:
     protected_task_manager->TaskSaveDefault();
     wf->SetModalResult(mrOK);
@@ -399,21 +375,10 @@ OnActivatePanClicked(gcc_unused WndButton &button)
   if (map_window == NULL)
     return;
 
-  map_window->PanTo(selected_waypoint->location);
+  map_window->PanTo(waypoint->location);
   XCSoarInterface::main_window.SetFullScreen(true);
   InputEvents::setMode(InputEvents::MODE_PAN);
   wf->SetModalResult(mrOK);
-}
-
-static void
-OnImagePaint(gcc_unused WndOwnerDrawFrame *Sender, Canvas &canvas)
-{
-  canvas.ClearWhite();
-  if (page == 3) {
-    canvas.copy(jpgimage1);
-  } else if (page == 4) {
-    canvas.copy(jpgimage2);
-  }
 }
 
 static gcc_constexpr_data CallBackTableEntry CallBackTable[] = {
@@ -427,7 +392,6 @@ static gcc_constexpr_data CallBackTableEntry CallBackTable[] = {
     DeclareCallBackEntry(OnRemoveFromTaskClicked),
     DeclareCallBackEntry(OnNewHomeClicked),
     DeclareCallBackEntry(OnActivatePanClicked),
-    DeclareCallBackEntry(OnImagePaint),
     DeclareCallBackEntry(NULL)
 };
 
@@ -438,171 +402,241 @@ ShowTaskCommands()
     return;
 
   WndButton *wb = ((WndButton *)wf->FindByName(_T("cmdRemoveFromTask")));
-  if (wb)
-    wb->set_visible(MapTaskManager::index_of_point_in_task(*selected_waypoint) >= 0);
+  assert(wb != NULL);
+  wb->set_visible(MapTaskManager::GetIndexInTask(*waypoint) >= 0);
+}
+
+static void
+UpdateCaption(const TCHAR *waypoint_name)
+{
+  StaticString<256> buffer;
+  buffer.Format(_T("%s: '%s'"), _("Waypoint Info"), waypoint_name);
+  wf->SetCaption(buffer);
+}
+
+static void
+UpdateComment(const TCHAR *comment)
+{
+  WndProperty *wp = (WndProperty *)wf->FindByName(_T("prpWpComment"));
+  assert(wp != NULL);
+  wp->SetText(comment);
+}
+
+static void
+UpdateLocation(const GeoPoint &location)
+{
+  WndProperty *wp = (WndProperty *)wf->FindByName(_T("Location"));
+  assert(wp != NULL);
+
+  TCHAR buffer[64];
+  if (Units::FormatGeoPoint(location, buffer, ARRAY_SIZE(buffer)) != NULL)
+    wp->SetText(buffer);
+}
+
+static void
+UpdateDistanceBearing(const GeoPoint &own_location,
+                      const GeoPoint &waypoint_location)
+{
+  WndProperty *wp = (WndProperty *)wf->FindByName(_T("BearingDistance"));
+  assert(wp != NULL);
+
+  GeoVector vector = own_location.DistanceBearing(waypoint_location);
+
+  TCHAR distance_buffer[32];
+  Units::FormatUserDistance(vector.distance, distance_buffer,
+                            ARRAY_SIZE(distance_buffer));
+
+  TCHAR buffer[64];
+  FormatBearing(buffer, ARRAY_SIZE(buffer), vector.bearing, distance_buffer);
+
+  wp->SetText(buffer);
+}
+
+static void
+UpdateElevation(fixed elevation)
+{
+  WndProperty *wp = (WndProperty *)wf->FindByName(_T("prpAltitude"));
+  assert(wp != NULL);
+
+  TCHAR buffer[64];
+  Units::FormatUserAltitude(elevation, buffer, ARRAY_SIZE(buffer));
+  wp->SetText(buffer);
+}
+
+static void
+UpdateRadioFrequency(const RadioFrequency &radio_frequency)
+{
+  if (!radio_frequency.IsDefined())
+    return;
+
+  WndProperty *wp = (WndProperty *)wf->FindByName(_T("Radio"));
+  assert(wp != NULL);
+
+  TCHAR buffer[64];
+  if (radio_frequency.Format(buffer, ARRAY_SIZE(buffer)) != NULL) {
+    _tcscat(buffer, _T(" MHz"));
+    wp->SetText(buffer);
+  }
+}
+
+static void
+UpdateRunwayInformation(const Runway &runway)
+{
+  WndProperty *wp = (WndProperty *)wf->FindByName(_T("Runway"));
+  assert(wp != NULL);
+
+  StaticString<64> buffer;
+  if (runway.IsDirectionDefined())
+    buffer.Format(_T("%02u"), runway.GetDirectionName());
+  else
+    buffer.clear();
+
+  if (runway.IsLengthDefined()) {
+    if (!buffer.empty())
+      buffer += _T("; ");
+
+    TCHAR length_buffer[16];
+    Units::FormatUserDistance(fixed(runway.GetLength()),
+                              length_buffer, ARRAY_SIZE(length_buffer));
+    buffer += length_buffer;
+  }
+
+  wp->SetText(buffer);
+}
+
+static void
+UpdateSunsetTime(const GeoPoint &location, const BrokenDateTime &date_time)
+{
+  WndProperty *wp = (WndProperty *)wf->FindByName(_T("prpSunset"));
+  assert(wp != NULL);
+
+  SunEphemeris::Result sun = SunEphemeris::CalcSunTimes(
+      location, date_time, fixed(GetUTCOffset()) / 3600);
+
+  int sunset_hour = (int)sun.time_of_sunset;
+  int sunset_minute = (int)((sun.time_of_sunset - fixed(sunset_hour)) * 60);
+
+  StaticString<64> buffer;
+  buffer.Format(_T("%02d:%02d"), sunset_hour, sunset_minute);
+
+  wp->SetText(buffer);
+}
+
+static void
+UpdateArrivalAltitudes(const ComputerSettings &settings_computer,
+                       const MoreData &basic, const DerivedInfo &calculated,
+                       const Waypoint &waypoint)
+{
+  GlidePolar glide_polar = settings_computer.glide_polar_task;
+  const GlidePolar &safety_polar = calculated.glide_polar_safety;
+
+  // alt reqd at current mc
+  WndProperty *wp = (WndProperty *)wf->FindByName(_T("prpMc2"));
+  assert(wp != NULL);
+
+  GlideResult r = TaskSolution::GlideSolutionRemaining(
+      basic.location, waypoint.location,
+      waypoint.altitude + settings_computer.task.safety_height_arrival,
+      basic.nav_altitude, calculated.wind, glide_polar);
+
+  StaticString<64> buffer;
+  buffer.Format(_T("%.0f %s"),
+                (double)Units::ToUserAltitude(r.altitude_difference),
+                Units::GetAltitudeName());
+  wp->SetText(buffer);
+
+  // alt reqd at mc 0
+  wp = (WndProperty *)wf->FindByName(_T("prpMc0"));
+  assert(wp != NULL);
+
+  glide_polar.SetMC(fixed_zero);
+  r = TaskSolution::GlideSolutionRemaining(
+      basic.location, waypoint.location,
+      waypoint.altitude + settings_computer.task.safety_height_arrival,
+      basic.nav_altitude, calculated.wind, glide_polar);
+
+  buffer.Format(_T("%.0f %s"),
+                (double)Units::ToUserAltitude(r.altitude_difference),
+                Units::GetAltitudeName());
+  wp->SetText(buffer);
+
+  // alt reqd at safety mc
+  wp = (WndProperty *)wf->FindByName(_T("prpMc1"));
+  assert(wp != NULL);
+
+  r = TaskSolution::GlideSolutionRemaining(
+      basic.location, waypoint.location,
+      waypoint.altitude + settings_computer.task.safety_height_arrival,
+      basic.nav_altitude, calculated.wind, safety_polar);
+
+  buffer.Format(_T("%.0f %s"),
+                (double)Units::ToUserAltitude(r.altitude_difference),
+                Units::GetAltitudeName());
+  wp->SetText(buffer);
 }
 
 void 
-dlgWaypointDetailsShowModal(SingleWindow &parent, const Waypoint& way_point,
+dlgWaypointDetailsShowModal(SingleWindow &parent, const Waypoint &_waypoint,
                             bool allow_navigation)
 {
   const MoreData &basic = CommonInterface::Basic();
   const DerivedInfo &calculated = CommonInterface::Calculated();
-  const SETTINGS_COMPUTER &settings_computer =
-    CommonInterface::SettingsComputer();
+  const ComputerSettings &settings_computer =
+    CommonInterface::GetComputerSettings();
 
-  selected_waypoint = &way_point;
+  waypoint = &_waypoint;
 
   wf = LoadDialog(CallBackTable, parent,
                   Layout::landscape ? _T("IDR_XML_WAYPOINTDETAILS_L") :
                                       _T("IDR_XML_WAYPOINTDETAILS"));
   assert(wf != NULL);
 
-  TCHAR path[MAX_PATH], buffer[MAX_PATH];
-  const TCHAR *Directory = NULL;
-  if (Profile::GetPath(szProfileWaypointFile, path))
-    Directory = DirName(path, buffer);
-  if (Directory == NULL)
-    Directory = _T("");
+  UpdateCaption(waypoint->name.c_str());
+  UpdateComment(waypoint->comment.c_str());
 
-  TCHAR sTmp[128];
-  _stprintf(sTmp, _T("%s: '%s'"), wf->GetCaption(), selected_waypoint->name.c_str());
-  wf->SetCaption(sTmp);
+  UpdateLocation(waypoint->location);
 
-  WndProperty *wp;
-  wp = ((WndProperty *)wf->FindByName(_T("prpWpComment")));
-  wp->SetText(selected_waypoint->comment.c_str());
+  if (basic.location_available)
+    UpdateDistanceBearing(basic.location, waypoint->location);
 
-  TCHAR *radio_frequency;
-  if (selected_waypoint->radio_frequency.IsDefined() &&
-      (radio_frequency =
-       selected_waypoint->radio_frequency.Format(sTmp, 128)) != NULL)
-    ((WndProperty *)wf->FindByName(_T("Radio")))->SetText(radio_frequency);
+  UpdateElevation(waypoint->altitude);
+  UpdateRadioFrequency(waypoint->radio_frequency);
+  UpdateRunwayInformation(waypoint->runway);
 
-  const Runway &runway = selected_waypoint->runway;
-  if (runway.IsDirectionDefined()) {
-    _stprintf(sTmp, _T("%02u"), runway.GetDirectionName());
-    if (runway.IsLengthDefined()) {
-      _tcscat(sTmp, _T("; "));
-      Units::FormatUserDistance(fixed(runway.GetLength()),
-                                sTmp + _tcslen(sTmp), 128 - _tcslen(sTmp));
-    }
+  if (basic.connected)
+    UpdateSunsetTime(waypoint->location, basic.date_time_utc);
 
-    ((WndProperty *)wf->FindByName(_T("Runway")))->SetText(sTmp);
-  }
-
-  TCHAR *location = Units::FormatGeoPoint(selected_waypoint->location,
-                                          sTmp, 128);
-  if (location != NULL)
-    ((WndProperty *)wf->FindByName(_T("Location")))->SetText(location);
-
-  Units::FormatUserAltitude(selected_waypoint->altitude, sTmp, sizeof(sTmp)-1);
-  ((WndProperty *)wf->FindByName(_T("prpAltitude")))
-    ->SetText(sTmp);
-
-  if (basic.connected) {
-    SunEphemeris sun;
-    sun.CalcSunTimes(selected_waypoint->location,
-                     basic.date_time_utc,
-                     fixed(GetUTCOffset()) / 3600);
-
-    int sunsethours = (int)sun.TimeOfSunSet;
-    int sunsetmins = (int)((sun.TimeOfSunSet - fixed(sunsethours)) * 60);
-
-    _stprintf(sTmp, _T("%02d:%02d"), sunsethours, sunsetmins);
-    ((WndProperty *)wf->FindByName(_T("prpSunset")))->SetText(sTmp);
-  }
-
-  if (basic.location_available) {
-    GeoVector gv = basic.location.DistanceBearing(selected_waypoint->location);
-
-    TCHAR DistanceText[MAX_PATH];
-    Units::FormatUserDistance(gv.distance, DistanceText, 10);
-
-    FormatBearing(sTmp, ARRAY_SIZE(sTmp), gv.bearing, DistanceText);
-    ((WndProperty *)wf->FindByName(_T("BearingDistance")))->SetText(sTmp);
-  }
-
-  if (protected_task_manager != NULL) {
-    GlidePolar glide_polar = settings_computer.glide_polar_task;
-    const GlidePolar &safety_polar = calculated.glide_polar_safety;
-
-    UnorderedTaskPoint t(way_point, settings_computer.task);
-
-    // alt reqd at current mc
-
-    const AircraftState aircraft_state = ToAircraftState(basic, calculated);
-    GlideResult r = TaskSolution::glide_solution_remaining(t, aircraft_state,
-                                                           glide_polar);
-    wp = (WndProperty *)wf->FindByName(_T("prpMc2"));
-    if (wp) {
-      _stprintf(sTmp, _T("%.0f %s"),
-                (double)Units::ToUserAltitude(r.altitude_difference),
-                Units::GetAltitudeName());
-      wp->SetText(sTmp);
-    }
-
-    // alt reqd at mc 0
-
-    glide_polar.SetMC(fixed_zero);
-    r = TaskSolution::glide_solution_remaining(t, aircraft_state, glide_polar);
-    wp = (WndProperty *)wf->FindByName(_T("prpMc0"));
-    if (wp) {
-      _stprintf(sTmp, _T("%.0f %s"),
-                (double)Units::ToUserAltitude(r.altitude_difference),
-                Units::GetAltitudeName());
-      wp->SetText(sTmp);
-    }
-
-    // alt reqd at safety mc
-
-    r = TaskSolution::glide_solution_remaining(t, aircraft_state, safety_polar);
-    wp = (WndProperty *)wf->FindByName(_T("prpMc1"));
-    if (wp) {
-      _stprintf(sTmp, _T("%.0f %s"),
-                (double)Units::ToUserAltitude(r.altitude_difference),
-                Units::GetAltitudeName());
-      wp->SetText(sTmp);
-    }
-  }
+  if (protected_task_manager != NULL)
+    UpdateArrivalAltitudes(settings_computer, basic, calculated, *waypoint);
 
   wf->SetKeyDownNotify(FormKeyDown);
 
   wInfo = ((WndFrame *)wf->FindByName(_T("frmInfos")));
-  wCommand = ((WndFrame *)wf->FindByName(_T("frmCommands")));
-  wImage = ((WndOwnerDrawFrame *)wf->FindByName(_T("frmImage")));
-  wDetails = (WndProperty*)wf->FindByName(_T("frmDetails"));
-
   assert(wInfo != NULL);
-  assert(wCommand != NULL);
-  assert(wImage != NULL);
-  assert(wDetails != NULL);
 
-  wDetails->SetText(selected_waypoint->details.c_str());
+  wCommand = ((WndFrame *)wf->FindByName(_T("frmCommands")));
+  assert(wCommand != NULL);
   wCommand->hide();
 
+  wDetails = (EditWindow*)wf->FindByName(_T("frmDetails"));
+  assert(wDetails != NULL);
+  wDetails->set_text(waypoint->details.c_str());
+
   if (!allow_navigation) {
-    WndButton* butnav = NULL;
-    butnav = (WndButton *)wf->FindByName(_T("cmdPrev"));
-    assert(butnav);
+    WndButton* butnav = (WndButton *)wf->FindByName(_T("cmdPrev"));
+    assert(butnav != NULL);
     butnav->hide();
+
     butnav = (WndButton *)wf->FindByName(_T("cmdNext"));
-    assert(butnav);
+    assert(butnav != NULL);
     butnav->hide();
+
     butnav = (WndButton *)wf->FindByName(_T("cmdGoto"));
-    assert(butnav);
+    assert(butnav != NULL);
     butnav->hide();
   }
 
   ShowTaskCommands();
-
-  _stprintf(path, _T("%s" DIR_SEPARATOR_S "modis-%03d.jpg"),
-            Directory, selected_waypoint->original_id);
-  hasimage1 = jpgimage1.LoadFile(path);
-
-  _stprintf(path, _T("%s" DIR_SEPARATOR_S "google-%03d.jpg"),
-            Directory, selected_waypoint->original_id);
-  hasimage2 = jpgimage2.LoadFile(path);
 
   page = 0;
 
@@ -611,7 +645,4 @@ dlgWaypointDetailsShowModal(SingleWindow &parent, const Waypoint& way_point,
   wf->ShowModal();
 
   delete wf;
-
-  jpgimage1.Reset();
-  jpgimage2.Reset();
 }

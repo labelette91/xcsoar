@@ -25,8 +25,8 @@ Copyright_License {
 #define MAP_WINDOW_BLACKBOARD_H
 
 #include "Blackboard/BaseBlackboard.hpp"
-#include "Blackboard/SettingsComputerBlackboard.hpp"
-#include "Blackboard/SettingsMapBlackboard.hpp"
+#include "Blackboard/ComputerSettingsBlackboard.hpp"
+#include "Blackboard/MapSettingsBlackboard.hpp"
 
 /**
  * Blackboard used by map window: provides read-only access to local
@@ -35,14 +35,14 @@ Copyright_License {
  */
 class MapWindowBlackboard:
   public BaseBlackboard,
-  public SettingsComputerBlackboard,
-  public SettingsMapBlackboard
+  public ComputerSettingsBlackboard,
+  public MapSettingsBlackboard
 {
 protected:
   void ReadBlackboard(const MoreData &nmea_info,
                       const DerivedInfo &derived_info);
-  void ReadSettingsComputer(const SETTINGS_COMPUTER &settings);
-  void ReadSettingsMap(const SETTINGS_MAP &settings);
+  void ReadComputerSettings(const ComputerSettings &settings);
+  void ReadMapSettings(const MapSettings &settings);
 };
 
 #endif

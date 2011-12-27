@@ -23,10 +23,7 @@
 #ifndef MAPTASKMANAGER_H
 #define MAPTASKMANAGER_H
 
-#include "Waypoint/Waypoint.hpp"
-#include "Task/Tasks/OrderedTask.hpp"
-#include "Task/TaskEvents.hpp"
-
+struct Waypoint;
 
 /**
  * Appends wp to current Ordered task and activates the ordered task if
@@ -38,7 +35,7 @@
  */
 namespace MapTaskManager
 {
-  enum task_edit_result {
+  enum TaskEditResult {
     SUCCESS,
     UNMODIFIED,
     INVALID,
@@ -47,17 +44,17 @@ namespace MapTaskManager
     MUTATED_FROM_GOTO,
   };
 
-  task_edit_result append_to_task(const Waypoint &wp);
-  task_edit_result insert_in_task(const Waypoint &wp);
-  task_edit_result replace_in_task(const Waypoint &wp);
-  task_edit_result remove_from_task(const Waypoint &wp);
+  TaskEditResult AppendToTask(const Waypoint &wp);
+  TaskEditResult InsertInTask(const Waypoint &wp);
+  TaskEditResult ReplaceInTask(const Waypoint &wp);
+  TaskEditResult RemoveFromTask(const Waypoint &wp);
 
   /**
    * @param wp
    * @return TurnPointIndex if MODE_ORDERED and wp is in task
    * else returns -1
    */
-  int index_of_point_in_task(const Waypoint &wp);
+  int GetIndexInTask(const Waypoint &wp);
 };
 
 #endif

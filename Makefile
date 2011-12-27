@@ -371,11 +371,11 @@ XCSOAR_SOURCES := \
 	$(SRC)/Gauge/LogoView.cpp \
 	\
 	$(SRC)/Waypoint/WaypointDetailsReader.cpp \
-	$(SRC)/MenuData.cpp \
-	$(SRC)/MenuBar.cpp \
-	$(SRC)/ButtonLabel.cpp \
+	$(SRC)/Menu/MenuData.cpp \
+	$(SRC)/Menu/MenuBar.cpp \
+	$(SRC)/Menu/ButtonLabel.cpp \
 	$(SRC)/Dialogs/Dialogs.cpp \
-	$(SRC)/ExpandMacros.cpp \
+	$(SRC)/Menu/ExpandMacros.cpp \
 	$(SRC)/InfoBoxes/Content/Factory.cpp \
 	$(SRC)/InfoBoxes/Content/Alternate.cpp \
 	$(SRC)/InfoBoxes/Content/Base.cpp \
@@ -501,8 +501,8 @@ XCSOAR_SOURCES := \
 	$(SRC)/UIGlobals.cpp \
 	$(SRC)/UIState.cpp \
 	$(SRC)/UISettings.cpp \
-	$(SRC)/SettingsMap.cpp \
-	$(SRC)/SettingsComputer.cpp \
+	$(SRC)/MapSettings.cpp \
+	$(SRC)/ComputerSettings.cpp \
 	$(SRC)/MergeThread.cpp \
 	$(SRC)/CalculationThread.cpp \
 	$(SRC)/DisplayMode.cpp \
@@ -524,8 +524,8 @@ XCSOAR_SOURCES := \
 	$(SRC)/Terrain/TerrainRenderer.cpp \
 	$(SRC)/Terrain/WeatherTerrainRenderer.cpp \
 	$(SRC)/Terrain/TerrainSettings.cpp \
-	$(SRC)/Markers.cpp \
-	$(SRC)/ProtectedMarkers.cpp \
+	$(SRC)/Markers/Markers.cpp \
+	$(SRC)/Markers/ProtectedMarkers.cpp \
 	\
 	$(SRC)/FlightStatistics.cpp \
 	$(SRC)/Renderer/FlightStatisticsRenderer.cpp \
@@ -534,6 +534,7 @@ XCSOAR_SOURCES := \
 	$(SRC)/Simulator.cpp \
 	$(SRC)/Asset.cpp \
 	$(SRC)/Hardware/Display.cpp \
+	$(SRC)/Hardware/DisplayGlue.cpp \
 	$(SRC)/Language/MOFile.cpp \
 	$(SRC)/Language/Language.cpp \
 	$(SRC)/Language/LanguageGlue.cpp \

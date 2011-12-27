@@ -103,8 +103,8 @@ protected:
     return blackboard.Calculated();
   }
 
-  const SETTINGS_COMPUTER &SettingsComputer() const {
-    return blackboard.SettingsComputer();
+  const ComputerSettings &GetComputerSettings() const {
+    return blackboard.GetComputerSettings();
   }
 
   const VarioSettings &Settings() const {
@@ -112,7 +112,7 @@ protected:
   }
 
 protected:
-  virtual bool on_resize(UPixelScalar width, UPixelScalar height);
+  virtual void on_resize(UPixelScalar width, UPixelScalar height);
   virtual void on_paint_buffer(Canvas &canvas);
 
 private:

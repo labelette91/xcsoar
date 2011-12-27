@@ -24,7 +24,7 @@ Copyright_License {
 #include "CirclingComputer.hpp"
 #include "NMEA/MoreData.hpp"
 #include "NMEA/Derived.hpp"
-#include "SettingsComputer.hpp"
+#include "ComputerSettings.hpp"
 #include "Math/LowPassFilter.hpp"
 
 static const fixed MinTurnRate(4);
@@ -67,7 +67,7 @@ CirclingComputer::Turning(CirclingInfo &circling_info,
                           const MoreData &basic, const MoreData &last_basic,
                           const DerivedInfo &calculated,
                           const DerivedInfo &last_calculated,
-                          const SETTINGS_COMPUTER &settings_computer)
+                          const ComputerSettings &settings_computer)
 {
   // You can't be circling unless you're flying
   if (!calculated.flight.flying || !basic.HasTimeAdvancedSince(last_basic))
@@ -87,17 +87,17 @@ CirclingComputer::Turning(CirclingInfo &circling_info,
   bool forcecircling = false;
   if (settings_computer.external_trigger_cruise_enabled && !basic.gps.replay) {
     switch (basic.switch_state.flight_mode) {
-    case SwitchInfo::MODE_UNKNOWN:
+    case SwitchInfo::FlightMode::UNKNOWN:
       forcecircling = false;
       forcecruise = false;
       break;
 
-    case SwitchInfo::MODE_CIRCLING:
+    case SwitchInfo::FlightMode::CIRCLING:
       forcecircling = true;
       forcecruise = false;
       break;
 
-    case SwitchInfo::MODE_CRUISE:
+    case SwitchInfo::FlightMode::CRUISE:
       forcecircling = false;
       forcecruise = true;
       break;
@@ -105,7 +105,7 @@ CirclingComputer::Turning(CirclingInfo &circling_info,
   }
 
   switch (calculated.turn_mode) {
-  case CRUISE:
+  case CirclingMode::CRUISE:
     // If (in cruise mode and beginning of circling detected)
     if (circling_info.turning || forcecircling) {
       // Remember the start values of the turn
@@ -113,14 +113,14 @@ CirclingComputer::Turning(CirclingInfo &circling_info,
       circling_info.turn_start_location = basic.location;
       circling_info.turn_start_altitude = basic.nav_altitude;
       circling_info.turn_start_energy_height = basic.energy_height;
-      circling_info.turn_mode = WAITCLIMB;
+      circling_info.turn_mode = CirclingMode::POSSIBLE_CLIMB;
     }
     if (!forcecircling)
       break;
 
-  case WAITCLIMB:
+  case CirclingMode::POSSIBLE_CLIMB:
     if (forcecruise) {
-      circling_info.turn_mode = CRUISE;
+      circling_info.turn_mode = CirclingMode::CRUISE;
       break;
     }
     if (circling_info.turning || forcecircling) {
@@ -130,7 +130,7 @@ CirclingComputer::Turning(CirclingInfo &circling_info,
         circling_info.circling = true;
 
         // JMW Transition to climb
-        circling_info.turn_mode = CLIMB;
+        circling_info.turn_mode = CirclingMode::CLIMB;
 
         // Remember the start values of the climbing period
         circling_info.climb_start_location = circling_info.turn_start_location;
@@ -140,11 +140,11 @@ CirclingComputer::Turning(CirclingInfo &circling_info,
       }
     } else {
       // nope, not turning, so go back to cruise
-      circling_info.turn_mode = CRUISE;
+      circling_info.turn_mode = CirclingMode::CRUISE;
     }
     break;
 
-  case CLIMB:
+  case CirclingMode::CLIMB:
     if (!circling_info.turning || forcecruise) {
       // Remember the end values of the turn
       circling_info.turn_start_time = basic.time;
@@ -153,14 +153,14 @@ CirclingComputer::Turning(CirclingInfo &circling_info,
       circling_info.turn_start_energy_height = basic.energy_height;
 
       // JMW Transition to cruise, due to not properly turning
-      circling_info.turn_mode = WAITCRUISE;
+      circling_info.turn_mode = CirclingMode::POSSIBLE_CRUISE;
     }
     if (!forcecruise)
       break;
 
-  case WAITCRUISE:
+  case CirclingMode::POSSIBLE_CRUISE:
     if (forcecircling) {
-      circling_info.turn_mode = CLIMB;
+      circling_info.turn_mode = CirclingMode::CLIMB;
       break;
     }
 
@@ -171,7 +171,7 @@ CirclingComputer::Turning(CirclingInfo &circling_info,
         circling_info.circling = false;
 
         // Transition to cruise
-        circling_info.turn_mode = CRUISE;
+        circling_info.turn_mode = CirclingMode::CRUISE;
         circling_info.cruise_start_location = circling_info.turn_start_location;
         circling_info.cruise_start_altitude = circling_info.turn_start_altitude;
         circling_info.cruise_start_time = circling_info.turn_start_time;
@@ -179,12 +179,12 @@ CirclingComputer::Turning(CirclingInfo &circling_info,
     } else {
       // nope, we are circling again
       // JMW Transition back to climb, because we are turning again
-      circling_info.turn_mode = CLIMB;
+      circling_info.turn_mode = CirclingMode::CLIMB;
     }
     break;
 
   default:
     // error, go to cruise
-    circling_info.turn_mode = CRUISE;
+    circling_info.turn_mode = CirclingMode::CRUISE;
   }
 }

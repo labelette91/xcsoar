@@ -166,7 +166,7 @@ TabMenuControl::SetCurrentPage(unsigned page)
     assert(butMain);
     StaticString<128> caption;
     caption.Format(_T("%s > %s"),
-                   gettext(butMain->caption), theitem.menu_caption);
+                   gettext(butMain->caption), gettext(theitem.menu_caption));
     form.SetCaption(caption);
   }
 }
@@ -686,21 +686,18 @@ TabMenuDisplay::on_paint(Canvas &canvas)
   PaintSubMenuItems(canvas, CaptionStyle);
 }
 
-bool
+void
 TabMenuDisplay::on_killfocus()
 {
   invalidate();
   PaintWindow::on_killfocus();
-
-  return true;
 }
 
-bool
+void
 TabMenuDisplay::on_setfocus()
 {
   invalidate();
   PaintWindow::on_setfocus();
-  return true;
 }
 
 void

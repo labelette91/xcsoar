@@ -119,7 +119,7 @@ TaskListPanel::OnTaskPaint(WndOwnerDrawFrame *Sender, Canvas &canvas)
   const Look &look = CommonInterface::main_window.GetLook();
   PaintTask(canvas, Sender->get_client_rect(), *ordered_task,
             XCSoarInterface::Basic().location,
-            XCSoarInterface::SettingsMap(),
+            XCSoarInterface::GetMapSettings(),
             look.map.task, look.map.airspace,
             terrain);
 }
@@ -335,7 +335,7 @@ TaskListPanel::OnNewTaskClicked()
       (MessageBoxX(_("Create new task?"), _("Task New"),
                    MB_YESNO|MB_ICONQUESTION) == IDYES)) {
     (*active_task)->Clear();
-    (*active_task)->SetFactory(XCSoarInterface::SettingsComputer().task.task_type_default);
+    (*active_task)->SetFactory(XCSoarInterface::GetComputerSettings().task.task_type_default);
     *task_modified = true;
     tab_bar.SetCurrentPage(dlgTaskManager::GetPropertiesTab());
     tab_bar.set_focus();
@@ -396,7 +396,7 @@ TaskListPanel::OnDeclareClicked()
   }
 
   Declaration decl(*active_task);
-  Profile::GetDeclarationConfig(decl, CommonInterface::SettingsComputer().plane);
+  Profile::GetDeclarationConfig(decl, CommonInterface::GetComputerSettings().plane);
   ExternalLogger::Declare(decl, way_points.GetHome());
 }
 
@@ -500,6 +500,7 @@ void
 TaskListPanel::Unprepare()
 {
   delete task_store;
+  XMLWidget::Unprepare();
 }
 
 void
