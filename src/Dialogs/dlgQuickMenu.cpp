@@ -112,6 +112,13 @@ FormKeyDown(gcc_unused WndForm &Sender, unsigned key_code)
 }
 
 static void
+OnButtonNextClicked(gcc_unused WndButton &sender)
+{
+  grid_view->ShowNextPage();
+  SetFormDefaultFocus();
+}
+
+static void
 OnButtonClicked(gcc_unused WndButton &sender)
 {
   signed focusPos = grid_view->GetIndexOfItemInFocus();
@@ -176,9 +183,15 @@ dlgQuickMenuShowModal(SingleWindow &parent)
     button_rc.top = 0;
     button_rc.right = 80;
     button_rc.bottom = 30;
+    void (*ptOnButtonClicked)(gcc_unused WndButton &sender);
+    if ( _tcsicmp(menuItem.label  , _T("Next") ) == 0 )
+        ptOnButtonClicked =  OnButtonNextClicked ;
+    else
+        ptOnButtonClicked =  OnButtonClicked ;
+    	
     WndButton *button =
       new WndCustomButton(*grid_view, dialog_look, expanded.text,
-                          button_rc, buttonStyle, OnButtonClicked);
+                          button_rc, buttonStyle, ptOnButtonClicked);
     button->set_enabled(expanded.enabled);
 
     buttons.append(button);
